@@ -45,6 +45,12 @@
           pkgs.lilv
           pkgs.libogg
           pkgs.flac
+          pkgs.libvorbis
+          pkgs.libusb1
+          pkgs.cppunit
+          pkgs.readline
+          pkgs.fontconfig
+          pkgs.freetype
           pkgs.pkg-config
           pkgs.pkgsCross.mingwW64.stdenv.cc
           pkgs.pkgsCross.mingwW64.stdenv.cc.bintools
@@ -70,12 +76,24 @@
           #endif
           #endif
           EOF
+          cat > .nix-shell-tools/include/pa_asio.h <<'EOF'
+          #ifndef PA_ASIO_H
+          #define PA_ASIO_H
+          #endif
+          EOF
           cat > .nix-shell-tools/exchndl.c <<'EOF'
           void ExcHndlInit(void) {}
           void ExcHndlSetLogFileNameA(const char *path) { (void) path; }
           EOF
           cat > .nix-shell-tools/empty.c <<'EOF'
           void __ardour_configure_stub(void) {}
+          EOF
+          cat > .nix-shell-tools/readline_stub.c <<'EOF'
+          char *rl_readline_name = 0;
+          int rl_insert(int count, int key) { (void) count; (void) key; return 0; }
+          int rl_bind_key(int key, int (*fn)(int, int)) { (void) key; (void) fn; return 0; }
+          char *readline(const char *prompt) { (void) prompt; return 0; }
+          void add_history(const char *line) { (void) line; }
           EOF
           cat > .nix-shell-tools/pkgconfig/gio-windows-2.0.pc <<'EOF'
           prefix=/no-prefix
@@ -95,6 +113,9 @@
           x86_64-w64-mingw32-gcc -c .nix-shell-tools/empty.c -o .nix-shell-tools/empty.o
           x86_64-w64-mingw32-ar rcs .nix-shell-tools/lib/libmgwhelp.a .nix-shell-tools/empty.o
           x86_64-w64-mingw32-ar rcs .nix-shell-tools/lib/libintl.a .nix-shell-tools/empty.o
+          x86_64-w64-mingw32-gcc -c .nix-shell-tools/readline_stub.c -o .nix-shell-tools/readline_stub.o
+          x86_64-w64-mingw32-ar rcs .nix-shell-tools/lib/libreadline.a .nix-shell-tools/readline_stub.o
+          x86_64-w64-mingw32-ar rcs .nix-shell-tools/lib/libtermcap.a .nix-shell-tools/empty.o
           export PATH="$PWD/.nix-shell-tools:$PATH"
           export PKG_CONFIG_PATH="$PWD/.nix-shell-tools/pkgconfig''${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
           export NIX_CFLAGS_COMPILE="-I$PWD/.nix-shell-tools/include ''${NIX_CFLAGS_COMPILE:-}"
