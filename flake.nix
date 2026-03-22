@@ -18,25 +18,34 @@
       windresWrapper = pkgs.writeShellScriptBin "windres" ''
         exec ${winPkgs.stdenv.cc.targetPrefix}windres "$@"
       '';
+
+      pkgConfigWrapper = pkgs.writeShellScriptBin "pkg-config" ''
+        exec ${winPkgs.pkg-config}/bin/pkg-config "$@"
+      '';
     in
     {
       packages.${system}.hello-win = winPkgs.hello;
 
       devShells.${system}.default = pkgs.mkShell {
         nativeBuildInputs = [
-          winPkgs.pkg-config
           winPkgs.stdenv.cc
+          winPkgs.pkg-config
           windresWrapper
+          pkgConfigWrapper
         ];
 
         buildInputs = [
-          winPkgs.zlib
+          winPkgs.boost
+          # まず glib は外す
         ];
 
         shellHook = ''
+          export PKG_CONFIG=${pkgConfigWrapper}/bin/pkg-config
+
           echo "target: ${winPkgs.stdenv.hostPlatform.config}"
           echo "cc: $CC"
           echo "windres: $(which windres)"
+          echo "pkg-config: $(which pkg-config)"
         '';
       };
     };
