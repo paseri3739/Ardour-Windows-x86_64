@@ -14,34 +14,30 @@
       };
 
       winPkgs = pkgs.pkgsCross.mingwW64;
+
+      windresWrapper = pkgs.writeShellScriptBin "windres" ''
+        exec ${winPkgs.stdenv.cc.targetPrefix}windres "$@"
+      '';
     in
     {
       packages.${system}.hello-win = winPkgs.hello;
 
-      devShells.${system}.default = winPkgs.callPackage (
-        {
-          mkShell,
-          pkg-config,
-          cmake,
-          file,
-          zlib,
-        }:
-        mkShell {
-          nativeBuildInputs = [
-            pkg-config
-            cmake
-            file
-          ];
+      devShells.${system}.default = pkgs.mkShell {
+        nativeBuildInputs = [
+          winPkgs.pkg-config
+          winPkgs.stdenv.cc
+          windresWrapper
+        ];
 
-          buildInputs = [
-            zlib
-          ];
+        buildInputs = [
+          winPkgs.zlib
+        ];
 
-          shellHook = ''
-            echo "target: ${winPkgs.stdenv.hostPlatform.config}"
-            echo "cc: $CC"
-          '';
-        }
-      ) { };
+        shellHook = ''
+          echo "target: ${winPkgs.stdenv.hostPlatform.config}"
+          echo "cc: $CC"
+          echo "windres: $(which windres)"
+        '';
+      };
     };
 }
