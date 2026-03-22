@@ -16,6 +16,7 @@
       };
       crossPkgs = pkgs.pkgsCross.mingwW64;
       buildPkgs = crossPkgs.buildPackages;
+      rubberbandCustom = crossPkgs.callPackage ./rubberband.nix { };
       targetLibraries = with crossPkgs; [
         boost
         glib
@@ -26,6 +27,7 @@
         liblo
         taglib
         vamp-plugin-sdk
+        rubberbandCustom
         fftw
         fftwFloat
         aubio
@@ -64,6 +66,7 @@
             config.allowUnsupportedSystem = true;
           };
           crossPkgs = pkgs.pkgsCross.mingwW64;
+          rubberbandCustom = crossPkgs.callPackage (/. + builtins.getEnv "RUBBERBAND_NIX_FILE") { };
           targetLibraries = with crossPkgs; [
             boost
             glib
@@ -74,6 +77,7 @@
             liblo
             taglib
             vamp-plugin-sdk
+            rubberbandCustom
             fftw
             fftwFloat
             aubio
@@ -121,6 +125,7 @@
           mkdir -p .nix-shell-tools
           ln -sfn "$(command -v x86_64-w64-mingw32-windres)" .nix-shell-tools/windres
           export PATH="$PWD/.nix-shell-tools:$PATH"
+          export RUBBERBAND_NIX_FILE="$PWD/rubberband.nix"
 
           for candidate in \
             "${buildPkgs.pkg-config}/bin/x86_64-w64-mingw32-pkg-config" \
