@@ -9,14 +9,29 @@
     { self, nixpkgs }:
     let
       system = "x86_64-linux";
+      overlay = final: prev: {
+        openssl_3_6 = prev.openssl_3_6.overrideAttrs (old: {
+          patches = pkgs.lib.filter (
+            patch: !(pkgs.lib.hasSuffix "/3.5/fix-mingw-linking.patch" (toString patch))
+          ) old.patches;
+        });
+        openssl = final.openssl_3_6;
+        libsamplerate = prev.callPackage ./libsamplerate.nix { };
+        rubberband = prev.callPackage ./rubberband.nix { };
+      };
       pkgs = import nixpkgs {
         inherit system;
         config.allowBroken = true;
         config.allowUnsupportedSystem = true;
       };
-      crossPkgs = pkgs.pkgsCross.mingwW64;
+      crossPkgs = import nixpkgs {
+        inherit system;
+        crossSystem = pkgs.lib.systems.examples.mingwW64;
+        overlays = [ overlay ];
+        config.allowBroken = true;
+        config.allowUnsupportedSystem = true;
+      };
       buildPkgs = crossPkgs.buildPackages;
-      rubberbandCustom = crossPkgs.callPackage ./rubberband.nix { };
       targetLibraries = with crossPkgs; [
         boost
         glib
@@ -27,7 +42,7 @@
         liblo
         taglib
         vamp-plugin-sdk
-        rubberbandCustom
+        rubberband
         fftw
         fftwFloat
         aubio
@@ -60,13 +75,29 @@
       flakeRootExpr = builtins.toJSON (toString ./.);
       crossEvalPrelude = ''
         let
-          pkgs = import (builtins.getFlake ${flakeRootExpr}).inputs.nixpkgs {
+          hostPkgs = import (builtins.getFlake ${flakeRootExpr}).inputs.nixpkgs {
             system = "x86_64-linux";
             config.allowBroken = true;
             config.allowUnsupportedSystem = true;
           };
-          crossPkgs = pkgs.pkgsCross.mingwW64;
-          rubberbandCustom = crossPkgs.callPackage (/. + builtins.getEnv "RUBBERBAND_NIX_FILE") { };
+          overlay = final: prev: {
+            openssl_3_6 = prev.openssl_3_6.overrideAttrs (old: {
+              patches = hostPkgs.lib.filter (
+                patch: !(hostPkgs.lib.hasSuffix "/3.5/fix-mingw-linking.patch" (toString patch))
+              ) old.patches;
+            });
+            openssl = final.openssl_3_6;
+            libsamplerate = prev.callPackage (/. + builtins.getEnv "LIBSAMPLERATE_NIX_FILE") { };
+            rubberband = prev.callPackage (/. + builtins.getEnv "RUBBERBAND_NIX_FILE") { };
+          };
+          pkgs = import (builtins.getFlake ${flakeRootExpr}).inputs.nixpkgs {
+            system = "x86_64-linux";
+            crossSystem = hostPkgs.lib.systems.examples.mingwW64;
+            overlays = [ overlay ];
+            config.allowBroken = true;
+            config.allowUnsupportedSystem = true;
+          };
+          crossPkgs = pkgs;
           targetLibraries = with crossPkgs; [
             boost
             glib
@@ -77,7 +108,7 @@
             liblo
             taglib
             vamp-plugin-sdk
-            rubberbandCustom
+            rubberband
             fftw
             fftwFloat
             aubio
@@ -125,6 +156,7 @@
           mkdir -p .nix-shell-tools
           ln -sfn "$(command -v x86_64-w64-mingw32-windres)" .nix-shell-tools/windres
           export PATH="$PWD/.nix-shell-tools:$PATH"
+          export LIBSAMPLERATE_NIX_FILE="$PWD/libsamplerate.nix"
           export RUBBERBAND_NIX_FILE="$PWD/rubberband.nix"
 
           for candidate in \
