@@ -16,6 +16,15 @@
           ) old.patches;
         });
         openssl = final.openssl_3_6;
+        libjack2 = prev.libjack2.overrideAttrs (old: {
+          postPatch = (old.postPatch or "") + "\nsubstituteInPlace common/wscript --replace-fail \"    process.defines = ['HAVE_CONFIG_H', 'SERVER_SIDE']\" \"    process.defines = ['HAVE_CONFIG_H', 'SERVER_SIDE']\\n    env_includes = []\"\n";
+        });
+        glib = prev.glib.overrideAttrs (old: {
+          mesonFlags =
+            (old.mesonFlags or [ ])
+            ++ prev.lib.optionals prev.stdenv.hostPlatform.isWindows [ "-Dsysprof=disabled" ];
+          buildInputs = prev.lib.filter (pkg: pkg != final.libsysprof-capture) (old.buildInputs or [ ]);
+        });
         libsamplerate = prev.callPackage ./libsamplerate.nix { };
         rubberband = prev.callPackage ./rubberband.nix { };
       };
@@ -53,7 +62,7 @@
         lv2
         libxml2
         libwebsockets
-        jack2
+        libjack2
         portaudio
         lrdf
         libsamplerate
@@ -87,6 +96,15 @@
               ) old.patches;
             });
             openssl = final.openssl_3_6;
+            libjack2 = prev.libjack2.overrideAttrs (old: {
+              postPatch = (old.postPatch or "") + "\nsubstituteInPlace common/wscript --replace-fail \"    process.defines = ['HAVE_CONFIG_H', 'SERVER_SIDE']\" \"    process.defines = ['HAVE_CONFIG_H', 'SERVER_SIDE']\\n    env_includes = []\"\n";
+            });
+            glib = prev.glib.overrideAttrs (old: {
+              mesonFlags =
+                (old.mesonFlags or [ ])
+                ++ hostPkgs.lib.optionals prev.stdenv.hostPlatform.isWindows [ "-Dsysprof=disabled" ];
+              buildInputs = hostPkgs.lib.filter (pkg: pkg != final.libsysprof-capture) (old.buildInputs or [ ]);
+            });
             libsamplerate = prev.callPackage (/. + builtins.getEnv "LIBSAMPLERATE_NIX_FILE") { };
             rubberband = prev.callPackage (/. + builtins.getEnv "RUBBERBAND_NIX_FILE") { };
           };
@@ -119,7 +137,7 @@
             lv2
             libxml2
             libwebsockets
-            jack2
+            libjack2
             portaudio
             lrdf
             libsamplerate
