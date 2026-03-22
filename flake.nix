@@ -2,7 +2,7 @@
   description = "x86_64-linux -> windows x86_64 cross compile template";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
   };
 
   outputs =
