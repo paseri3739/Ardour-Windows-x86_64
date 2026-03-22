@@ -9,123 +9,172 @@
     { self, nixpkgs }:
     let
       system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowBroken = true;
+        config.allowUnsupportedSystem = true;
+      };
+      crossPkgs = pkgs.pkgsCross.mingwW64;
+      buildPkgs = crossPkgs.buildPackages;
+      targetLibraries = with crossPkgs; [
+        boost
+        glib
+        glibmm
+        libsndfile
+        curl
+        libarchive
+        liblo
+        taglib
+        vamp-plugin-sdk
+        fftw
+        fftwFloat
+        aubio
+        libpng
+        pango
+        cairomm
+        pangomm
+        lv2
+        libxml2
+        libwebsockets
+        jack2
+        portaudio
+        lrdf
+        libsamplerate
+        serd
+        sord
+        sratom
+        lilv
+        libogg
+        flac
+        libvorbis
+        libusb1
+        cppunit
+        readline
+        ncurses
+        fontconfig
+        freetype
+        windows.mcfgthreads
+      ];
+      flakeRootExpr = builtins.toJSON (toString ./.);
+      crossEvalPrelude = ''
+        let
+          pkgs = import (builtins.getFlake ${flakeRootExpr}).inputs.nixpkgs {
+            system = "x86_64-linux";
+            config.allowBroken = true;
+            config.allowUnsupportedSystem = true;
+          };
+          crossPkgs = pkgs.pkgsCross.mingwW64;
+          targetLibraries = with crossPkgs; [
+            boost
+            glib
+            glibmm
+            libsndfile
+            curl
+            libarchive
+            liblo
+            taglib
+            vamp-plugin-sdk
+            fftw
+            fftwFloat
+            aubio
+            libpng
+            pango
+            cairomm
+            pangomm
+            lv2
+            libxml2
+            libwebsockets
+            jack2
+            portaudio
+            lrdf
+            libsamplerate
+            serd
+            sord
+            sratom
+            lilv
+            libogg
+            flac
+            libvorbis
+            libusb1
+            cppunit
+            readline
+            ncurses
+            fontconfig
+            freetype
+            windows.mcfgthreads
+          ];
+          targetLibraryClosure = pkgs.lib.closePropagation targetLibraries;
+        in
+      '';
     in
     {
       devShells.${system}.default = pkgs.mkShell {
         packages = [
           pkgs.git
-          pkgs.boost
-          pkgs.glib
-          pkgs.glibmm
-          pkgs.libsndfile
-          pkgs.curl
-          pkgs.libarchive
-          pkgs.liblo
-          pkgs.taglib
-          pkgs.vamp-plugin-sdk
-          pkgs.rubberband
-          pkgs.fftw
-          pkgs.fftwFloat
-          pkgs.aubio
-          pkgs.libpng
-          pkgs.pango
-          pkgs.cairomm
-          pkgs.pangomm
-          pkgs.lv2
-          pkgs.libxml2
-          pkgs.libwebsockets
-          pkgs.jack2
-          pkgs.portaudio
-          pkgs.lrdf
-          pkgs.libsamplerate
-          pkgs.serd
-          pkgs.sord
-          pkgs.sratom
-          pkgs.lilv
-          pkgs.libogg
-          pkgs.flac
-          pkgs.libvorbis
-          pkgs.libusb1
-          pkgs.cppunit
-          pkgs.readline
-          pkgs.fontconfig
-          pkgs.freetype
-          pkgs.pkg-config
-          pkgs.pkgsCross.mingwW64.stdenv.cc
-          pkgs.pkgsCross.mingwW64.stdenv.cc.bintools
+          pkgs.python3
+          buildPkgs.pkg-config
+          crossPkgs.stdenv.cc
+          crossPkgs.stdenv.cc.bintools
         ];
 
         shellHook = ''
           mkdir -p .nix-shell-tools
-          mkdir -p .nix-shell-tools/lib
-          mkdir -p .nix-shell-tools/include
-          mkdir -p .nix-shell-tools/pkgconfig
           ln -sfn "$(command -v x86_64-w64-mingw32-windres)" .nix-shell-tools/windres
-          ln -sfn "${pkgs.pkgsCross.mingwW64.windows.mcfgthreads}/lib/libmcfgthread.a" .nix-shell-tools/lib/libpthread.a
-          cat > .nix-shell-tools/include/exchndl.h <<'EOF'
-          #ifndef EXCHNDL_H
-          #define EXCHNDL_H
-          #ifdef __cplusplus
-          extern "C" {
-          #endif
-          void ExcHndlInit(void);
-          void ExcHndlSetLogFileNameA(const char *path);
-          #ifdef __cplusplus
-          }
-          #endif
-          #endif
-          EOF
-          cat > .nix-shell-tools/include/pa_asio.h <<'EOF'
-          #ifndef PA_ASIO_H
-          #define PA_ASIO_H
-          #endif
-          EOF
-          cat > .nix-shell-tools/exchndl.c <<'EOF'
-          void ExcHndlInit(void) {}
-          void ExcHndlSetLogFileNameA(const char *path) { (void) path; }
-          EOF
-          cat > .nix-shell-tools/empty.c <<'EOF'
-          void __ardour_configure_stub(void) {}
-          EOF
-          cat > .nix-shell-tools/readline_stub.c <<'EOF'
-          char *rl_readline_name = 0;
-          int rl_insert(int count, int key) { (void) count; (void) key; return 0; }
-          int rl_bind_key(int key, int (*fn)(int, int)) { (void) key; (void) fn; return 0; }
-          char *readline(const char *prompt) { (void) prompt; return 0; }
-          void add_history(const char *line) { (void) line; }
-          EOF
-          cat > .nix-shell-tools/pkgconfig/gio-windows-2.0.pc <<'EOF'
-          prefix=/no-prefix
-          exec_prefix=''${prefix}
-          libdir=''${exec_prefix}/lib
-          includedir=''${prefix}/include
-
-          Name: gio-windows-2.0
-          Description: shim pkg-config entry for gio Windows API support
-          Version: 2.86.3
-          Requires: gio-2.0
-          Libs:
-          Cflags:
-          EOF
-          x86_64-w64-mingw32-gcc -c .nix-shell-tools/exchndl.c -o .nix-shell-tools/exchndl.o
-          x86_64-w64-mingw32-ar rcs .nix-shell-tools/lib/libexchndl.a .nix-shell-tools/exchndl.o
-          x86_64-w64-mingw32-gcc -c .nix-shell-tools/empty.c -o .nix-shell-tools/empty.o
-          x86_64-w64-mingw32-ar rcs .nix-shell-tools/lib/libmgwhelp.a .nix-shell-tools/empty.o
-          x86_64-w64-mingw32-ar rcs .nix-shell-tools/lib/libintl.a .nix-shell-tools/empty.o
-          x86_64-w64-mingw32-gcc -c .nix-shell-tools/readline_stub.c -o .nix-shell-tools/readline_stub.o
-          x86_64-w64-mingw32-ar rcs .nix-shell-tools/lib/libreadline.a .nix-shell-tools/readline_stub.o
-          x86_64-w64-mingw32-ar rcs .nix-shell-tools/lib/libtermcap.a .nix-shell-tools/empty.o
           export PATH="$PWD/.nix-shell-tools:$PATH"
-          export PKG_CONFIG_PATH="$PWD/.nix-shell-tools/pkgconfig''${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
-          export NIX_CFLAGS_COMPILE="-I$PWD/.nix-shell-tools/include ''${NIX_CFLAGS_COMPILE:-}"
-          export NIX_LDFLAGS="-L$PWD/.nix-shell-tools/lib ''${NIX_LDFLAGS:-}"
+
+          for candidate in \
+            "${buildPkgs.pkg-config}/bin/x86_64-w64-mingw32-pkg-config" \
+            "${buildPkgs.pkg-config}/bin/pkg-config"
+          do
+            if [ -x "$candidate" ]; then
+              export PKG_CONFIG="$candidate"
+              break
+            fi
+          done
+
+          if [ -z "''${PKG_CONFIG:-}" ]; then
+            echo "error: mingw pkg-config wrapper not found in ${buildPkgs.pkg-config}/bin" >&2
+            return 1
+          fi
+
+          NIXPKGS_ALLOW_BROKEN=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nix build --impure --no-link --expr '${crossEvalPrelude}
+            pkgs.lib.concatMap
+              (pkg: [ (if pkg ? dev then pkg.dev else pkg) pkg ])
+              (pkgs.lib.unique targetLibraryClosure)' >/dev/null
+
+          export PATH="$(dirname "$PKG_CONFIG"):$PATH"
+          export PKG_CONFIG_PATH="$(
+            NIXPKGS_ALLOW_BROKEN=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nix eval --impure --raw --expr '${crossEvalPrelude}
+              pkgs.lib.concatStringsSep ":" (pkgs.lib.unique (builtins.filter (path: path != "") [
+                (pkgs.lib.makeSearchPathOutput "dev" "lib/pkgconfig" targetLibraryClosure)
+                (pkgs.lib.makeSearchPathOutput "dev" "share/pkgconfig" targetLibraryClosure)
+                (pkgs.lib.makeSearchPathOutput "out" "lib/pkgconfig" targetLibraryClosure)
+                (pkgs.lib.makeSearchPathOutput "out" "share/pkgconfig" targetLibraryClosure)
+              ]))'
+          )"
+          export PKG_CONFIG_LIBDIR="$PKG_CONFIG_PATH"
           export CC=x86_64-w64-mingw32-gcc
           export CXX=x86_64-w64-mingw32-g++
           export AR=x86_64-w64-mingw32-ar
           export RANLIB=x86_64-w64-mingw32-ranlib
           export STRIP=x86_64-w64-mingw32-strip
           export WINDRES=windres
+          export NIX_CFLAGS_COMPILE="$(
+            NIXPKGS_ALLOW_BROKEN=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nix eval --impure --raw --expr '${crossEvalPrelude}
+              pkgs.lib.concatStringsSep " " (map (path: "-I''${path}") (pkgs.lib.unique (builtins.filter (path: path != "") [
+                (pkgs.lib.makeSearchPathOutput "dev" "include" targetLibraryClosure)
+                (pkgs.lib.makeSearchPathOutput "out" "include" targetLibraryClosure)
+              ])))'
+          ) ''${NIX_CFLAGS_COMPILE:-}"
+          export NIX_LDFLAGS="$(
+            NIXPKGS_ALLOW_BROKEN=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nix eval --impure --raw --expr '${crossEvalPrelude}
+              pkgs.lib.concatStringsSep " " (map (path: "-L''${path}") (pkgs.lib.unique (builtins.filter (path: path != "") [
+                (pkgs.lib.makeSearchPathOutput "dev" "lib" targetLibraryClosure)
+                (pkgs.lib.makeSearchPathOutput "out" "lib" targetLibraryClosure)
+              ])))'
+          ) ''${NIX_LDFLAGS:-}"
+          export PKG_CONFIG_SYSTEM_LIBRARY_PATH=
+          export PKG_CONFIG_SYSTEM_INCLUDE_PATH=
 
           if [ -f ardour/.git ] && grep -q '^gitdir: ../.git/modules/ardour$' ardour/.git 2>/dev/null; then
             rm -f ardour/.git
