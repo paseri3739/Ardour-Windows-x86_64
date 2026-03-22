@@ -1,0 +1,11 @@
+prefix=/no-prefix
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: gio-windows-2.0
+Description: shim pkg-config entry for gio Windows API support
+Version: 2.86.3
+Requires: gio-2.0
+Libs:
+Cflags:
