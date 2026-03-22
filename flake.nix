@@ -19,11 +19,49 @@
         libjack2 = prev.libjack2.overrideAttrs (old: {
           postPatch = (old.postPatch or "") + "\nsubstituteInPlace common/wscript --replace-fail \"    process.defines = ['HAVE_CONFIG_H', 'SERVER_SIDE']\" \"    process.defines = ['HAVE_CONFIG_H', 'SERVER_SIDE']\\n    env_includes = []\"\n";
         });
+        zix = prev.zix.overrideAttrs (old: {
+          mesonFlags =
+            (old.mesonFlags or [ ])
+            ++ prev.lib.optionals prev.stdenv.hostPlatform.isWindows [ "-Dtests=disabled" ];
+          buildInputs =
+            (old.buildInputs or [ ])
+            ++ prev.lib.optionals prev.stdenv.hostPlatform.isWindows [ final.windows.mingw_w64_pthreads ];
+          NIX_LDFLAGS = (old.NIX_LDFLAGS or "") + prev.lib.optionalString prev.stdenv.hostPlatform.isWindows " -L''${final.windows.mingw_w64_pthreads}/lib";
+          doCheck = false;
+        });
+        libdatrie = prev.libdatrie.overrideAttrs (old: {
+          postInstall = (old.postInstall or "") + prev.lib.optionalString prev.stdenv.hostPlatform.isWindows "\nrm -f \"$bin/bin/trietool-0.2\"\n";
+          dontCheckForBrokenSymlinks = true;
+        });
         glib = prev.glib.overrideAttrs (old: {
           mesonFlags =
             (old.mesonFlags or [ ])
-            ++ prev.lib.optionals prev.stdenv.hostPlatform.isWindows [ "-Dsysprof=disabled" ];
-          buildInputs = prev.lib.filter (pkg: pkg != final.libsysprof-capture) (old.buildInputs or [ ]);
+            ++ prev.lib.optionals prev.stdenv.hostPlatform.isWindows [
+              "-Dsysprof=disabled"
+              "-Ddocumentation=false"
+              "-Dintrospection=disabled"
+            ];
+          buildInputs =
+            if prev.stdenv.hostPlatform.isWindows then
+              prev.lib.filter (pkg: pkg != final.libsysprof-capture) (old.buildInputs or [ ])
+            else
+              (old.buildInputs or [ ]);
+          nativeBuildInputs =
+            if prev.stdenv.hostPlatform.isWindows then
+              let
+                targetPythonHooks = [
+                  final.python3Packages.packaging
+                  final.python3Packages.wrapPython
+                ];
+              in
+              (prev.lib.filter (pkg: !(builtins.elem pkg targetPythonHooks)) (old.nativeBuildInputs or [ ]))
+              ++ [
+                final.buildPackages.python3Packages.packaging
+                final.buildPackages.python3Packages.wrapPython
+              ]
+            else
+              (old.nativeBuildInputs or [ ]);
+          preFixup = prev.lib.optionalString (!prev.stdenv.hostPlatform.isWindows) (old.preFixup or "");
         });
         libsamplerate = prev.callPackage ./libsamplerate.nix { };
         rubberband = prev.callPackage ./rubberband.nix { };
@@ -79,6 +117,7 @@
         ncurses
         fontconfig
         freetype
+        windows.mingw_w64_pthreads
         windows.mcfgthreads
       ];
       flakeRootExpr = builtins.toJSON (toString ./.);
@@ -99,11 +138,49 @@
             libjack2 = prev.libjack2.overrideAttrs (old: {
               postPatch = (old.postPatch or "") + "\nsubstituteInPlace common/wscript --replace-fail \"    process.defines = ['HAVE_CONFIG_H', 'SERVER_SIDE']\" \"    process.defines = ['HAVE_CONFIG_H', 'SERVER_SIDE']\\n    env_includes = []\"\n";
             });
+            zix = prev.zix.overrideAttrs (old: {
+              mesonFlags =
+                (old.mesonFlags or [ ])
+                ++ hostPkgs.lib.optionals prev.stdenv.hostPlatform.isWindows [ "-Dtests=disabled" ];
+              buildInputs =
+                (old.buildInputs or [ ])
+                ++ hostPkgs.lib.optionals prev.stdenv.hostPlatform.isWindows [ final.windows.mingw_w64_pthreads ];
+              NIX_LDFLAGS = (old.NIX_LDFLAGS or "") + hostPkgs.lib.optionalString prev.stdenv.hostPlatform.isWindows " -L''${final.windows.mingw_w64_pthreads}/lib";
+              doCheck = false;
+            });
+            libdatrie = prev.libdatrie.overrideAttrs (old: {
+              postInstall = (old.postInstall or "") + hostPkgs.lib.optionalString prev.stdenv.hostPlatform.isWindows "\nrm -f \"$bin/bin/trietool-0.2\"\n";
+              dontCheckForBrokenSymlinks = true;
+            });
             glib = prev.glib.overrideAttrs (old: {
               mesonFlags =
                 (old.mesonFlags or [ ])
-                ++ hostPkgs.lib.optionals prev.stdenv.hostPlatform.isWindows [ "-Dsysprof=disabled" ];
-              buildInputs = hostPkgs.lib.filter (pkg: pkg != final.libsysprof-capture) (old.buildInputs or [ ]);
+                ++ hostPkgs.lib.optionals prev.stdenv.hostPlatform.isWindows [
+                  "-Dsysprof=disabled"
+                  "-Ddocumentation=false"
+                  "-Dintrospection=disabled"
+                ];
+              buildInputs =
+                if prev.stdenv.hostPlatform.isWindows then
+                  hostPkgs.lib.filter (pkg: pkg != final.libsysprof-capture) (old.buildInputs or [ ])
+                else
+                  (old.buildInputs or [ ]);
+              nativeBuildInputs =
+                if prev.stdenv.hostPlatform.isWindows then
+                  let
+                    targetPythonHooks = [
+                      final.python3Packages.packaging
+                      final.python3Packages.wrapPython
+                    ];
+                  in
+                  (hostPkgs.lib.filter (pkg: !(builtins.elem pkg targetPythonHooks)) (old.nativeBuildInputs or [ ]))
+                  ++ [
+                    final.buildPackages.python3Packages.packaging
+                    final.buildPackages.python3Packages.wrapPython
+                  ]
+                else
+                  (old.nativeBuildInputs or [ ]);
+              preFixup = hostPkgs.lib.optionalString (!prev.stdenv.hostPlatform.isWindows) (old.preFixup or "");
             });
             libsamplerate = prev.callPackage (/. + builtins.getEnv "LIBSAMPLERATE_NIX_FILE") { };
             rubberband = prev.callPackage (/. + builtins.getEnv "RUBBERBAND_NIX_FILE") { };
@@ -154,6 +231,7 @@
             ncurses
             fontconfig
             freetype
+            windows.mingw_w64_pthreads
             windows.mcfgthreads
           ];
           targetLibraryClosure = pkgs.lib.closePropagation targetLibraries;
@@ -216,17 +294,33 @@
           export WINDRES=windres
           export NIX_CFLAGS_COMPILE="$(
             NIXPKGS_ALLOW_BROKEN=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nix eval --impure --raw --expr '${crossEvalPrelude}
-              pkgs.lib.concatStringsSep " " (map (path: "-I''${path}") (pkgs.lib.unique (builtins.filter (path: path != "") [
-                (pkgs.lib.makeSearchPathOutput "dev" "include" targetLibraryClosure)
-                (pkgs.lib.makeSearchPathOutput "out" "include" targetLibraryClosure)
-              ])))'
+              let
+                includeDirs = pkgs.lib.unique (
+                  pkgs.lib.concatMap
+                    (pkg:
+                      builtins.filter builtins.pathExists [
+                        "''${if pkg ? dev then pkg.dev else pkg}/include"
+                        "''${pkg}/include"
+                      ])
+                    targetLibraryClosure
+                );
+              in
+                pkgs.lib.concatStringsSep " " (map (path: "-I''${path}") includeDirs)'
           ) ''${NIX_CFLAGS_COMPILE:-}"
           export NIX_LDFLAGS="$(
             NIXPKGS_ALLOW_BROKEN=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nix eval --impure --raw --expr '${crossEvalPrelude}
-              pkgs.lib.concatStringsSep " " (map (path: "-L''${path}") (pkgs.lib.unique (builtins.filter (path: path != "") [
-                (pkgs.lib.makeSearchPathOutput "dev" "lib" targetLibraryClosure)
-                (pkgs.lib.makeSearchPathOutput "out" "lib" targetLibraryClosure)
-              ])))'
+              let
+                libDirs = pkgs.lib.unique (
+                  pkgs.lib.concatMap
+                    (pkg:
+                      builtins.filter builtins.pathExists [
+                        "''${if pkg ? dev then pkg.dev else pkg}/lib"
+                        "''${pkg}/lib"
+                      ])
+                    targetLibraryClosure
+                );
+              in
+                pkgs.lib.concatStringsSep " " (map (path: "-L''${path}") libDirs)'
           ) ''${NIX_LDFLAGS:-}"
           export PKG_CONFIG_SYSTEM_LIBRARY_PATH=
           export PKG_CONFIG_SYSTEM_INCLUDE_PATH=
