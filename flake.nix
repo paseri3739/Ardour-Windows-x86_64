@@ -443,17 +443,23 @@
         '';
       };
 
+      mingwLibgnurx = winPkgs.stdenv.mkDerivation rec {
+        pname = "mingw-libgnurx";
+        version = "2.5.1";
+
+        src = pkgs.fetchurl {
+          url = "http://sourceforge.net/projects/mingw/files/Other/UserContributed/regex/mingw-regex-2.5.1/mingw-libgnurx-2.5.1-src.tar.gz";
+          hash = "sha256-cUe3+AbsPQB4Q7OOGfQqW3xliUpX/8KXp2sNzV9nXXY=";
+        };
+
+        configureFlags = [
+          "--build=${pkgs.stdenv.hostPlatform.config}"
+          "--host=${winPkgs.stdenv.hostPlatform.config}"
+        ];
+      };
+
       windresWrapper = pkgs.writeShellScriptBin "windres" ''
         exec ${winPkgs.stdenv.cc.targetPrefix}windres "$@"
-      '';
-
-      regexCompatHeaders = pkgs.writeTextDir "include/regex.h" ''
-        #ifndef ARDOUR_WINDOWS_COMPAT_REGEX_H
-        #define ARDOUR_WINDOWS_COMPAT_REGEX_H
-
-        #include <regex>
-
-        #endif
       '';
 
       mingwPkgConfigPath = pkgs.lib.concatStringsSep ":" [
@@ -500,6 +506,7 @@
       ];
 
       mingwLibraryPath = pkgs.lib.concatStringsSep ":" [
+        "${mingwLibgnurx}/lib"
         "${msys2Boost}/lib"
         "${msys2BoostLibs}/lib"
         "${msys2Glib}/lib"
@@ -547,6 +554,7 @@
       ];
 
       mingwLdFlags = pkgs.lib.concatStringsSep " " [
+        "-L${mingwLibgnurx}/lib"
         "-L${msys2Boost}/lib"
         "-L${msys2BoostLibs}/lib"
         "-L${msys2Glib}/lib"
@@ -594,6 +602,7 @@
       ];
 
       mingwTailLibs = pkgs.lib.concatStringsSep " " [
+        "-lregex"
         "-lfftw3f_threads"
         "-lsratom-0"
         "-lsord-0"
@@ -601,7 +610,7 @@
       ];
 
       mingwWrapperCppFlags = pkgs.lib.concatStringsSep " " [
-        "-I${regexCompatHeaders}/include"
+        "-I${mingwLibgnurx}/include"
       ];
 
       ccWrapper = pkgs.writeShellScriptBin "${winPkgs.stdenv.cc.targetPrefix}gcc-msys2" ''
@@ -656,6 +665,7 @@
         ];
 
         buildInputs = [
+          mingwLibgnurx
           winPkgs.zlib
           winPkgs.zlib.dev
           winPkgs.openssl.out
@@ -717,7 +727,7 @@
           export PKG_CONFIG=${pkgConfigWrapper}/bin/pkg-config
           export PKG_CONFIG_PATH=${mingwPkgConfigPath}''${PKG_CONFIG_PATH:+:''${PKG_CONFIG_PATH}}
           export PKG_CONFIG_LIBDIR=${mingwPkgConfigPath}
-          export CPPFLAGS="-I${regexCompatHeaders}/include -I${winPkgs.zlib.dev}/include -I${winPkgs.openssl.dev}/include -I${msys2Freetype}/include/freetype2 -I${msys2Fontconfig}/include -I${msys2Serd}/include -I${msys2Sord}/include -I${msys2Sratom}/include -I${msys2Lilv}/include ''${CPPFLAGS:+$CPPFLAGS}"
+          export CPPFLAGS="-I${mingwLibgnurx}/include -I${winPkgs.zlib.dev}/include -I${winPkgs.openssl.dev}/include -I${msys2Freetype}/include/freetype2 -I${msys2Fontconfig}/include -I${msys2Serd}/include -I${msys2Sord}/include -I${msys2Sratom}/include -I${msys2Lilv}/include ''${CPPFLAGS:+$CPPFLAGS}"
           export CFLAGS="$CPPFLAGS ''${CFLAGS:+$CFLAGS}"
           export CXXFLAGS="$CPPFLAGS ''${CXXFLAGS:+$CXXFLAGS}"
           export LIBRARY_PATH=${mingwLibraryPath}''${LIBRARY_PATH:+:''${LIBRARY_PATH}}
