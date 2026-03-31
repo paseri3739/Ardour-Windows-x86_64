@@ -127,6 +127,66 @@
         fixPkgConfig = true;
       };
 
+      msys2VampPluginSdk = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-vamp-plugin-sdk";
+        version = "2.10.0-4";
+        sha256 = "0d2q50nfp90sxnija6rznp0ighpfb08vyc19xwqfa0wqf2yq0fy2";
+        fixPkgConfig = true;
+      };
+
+      msys2Rubberband = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-rubberband";
+        version = "3.3.0-1";
+        sha256 = "0cajlcip657nl8mn1fabr5qkwh32ghzszn7gjqrl8ih185f4h7g6";
+        fixPkgConfig = true;
+      };
+
+      msys2Fftw = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-fftw";
+        version = "3.3.10-5";
+        sha256 = "1v5ldkziwdvi07v3lhg4pm3sh1247c4a90cnhhp0qg5hjlxn1lcg";
+        fixPkgConfig = true;
+      };
+
+      msys2Libsamplerate = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libsamplerate";
+        version = "0.2.2-1";
+        sha256 = "1dpqa6jr5hck5q326y47vraxw3s28h1gl42dm3r8sbx2n672sjs5";
+        fixPkgConfig = true;
+      };
+
+      msys2Libusb = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libusb";
+        version = "1.0.28-1";
+        sha256 = "1bykzp5vilggnjl7146jqzcja710hh3c98ff6va63hairg3yw7m6";
+        fixPkgConfig = true;
+      };
+
+      msys2Aubio = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-aubio";
+        version = "0.4.9-10";
+        sha256 = "sha256-Ms87e3od79rqo49QDF2aCdcYiJ3XvN9+U/rrsHH0aHk=";
+        fixPkgConfig = true;
+      };
+
+      msys2GettextRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-gettext-runtime";
+        version = "1.0-1";
+        sha256 = "sha256-vmjX8mBjMoS5EMWIxtgu4wSoHIgXpobSzZ34P4csJ68=";
+      };
+
+      msys2Libiconv = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libiconv";
+        version = "1.19-1";
+        sha256 = "sha256-IeM00JEfJd510+GOBpdki87PqWWCVtYAytCCfXGcLzU=";
+      };
+
+      msys2DrMingw = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-drmingw";
+        version = "0.9.11-2";
+        sha256 = "sha256-P7Cqx97jxZHuTVQhkVAlUmLOCLLFYRY6kXzwt90pUi8=";
+      };
+
       windresWrapper = pkgs.writeShellScriptBin "windres" ''
         exec ${winPkgs.stdenv.cc.targetPrefix}windres "$@"
       '';
@@ -140,8 +200,68 @@
         "${msys2Libarchive}/lib/pkgconfig"
         "${msys2Liblo}/lib/pkgconfig"
         "${msys2Taglib}/lib/pkgconfig"
+        "${msys2VampPluginSdk}/lib/pkgconfig"
+        "${msys2Fftw}/lib/pkgconfig"
+        "${msys2Libsamplerate}/lib/pkgconfig"
+        "${msys2Libusb}/lib/pkgconfig"
+        "${msys2Rubberband}/lib/pkgconfig"
+        "${msys2Aubio}/lib/pkgconfig"
         "${winPkgs.windows.mcfgthreads.dev}/lib/pkgconfig"
       ];
+
+      mingwLibraryPath = pkgs.lib.concatStringsSep ":" [
+        "${msys2Boost}/lib"
+        "${msys2BoostLibs}/lib"
+        "${msys2Glib}/lib"
+        "${msys2Libsigcxx}/lib"
+        "${msys2Glibmm}/lib"
+        "${msys2Libsndfile}/lib"
+        "${msys2Curl}/lib"
+        "${msys2Libarchive}/lib"
+        "${msys2Liblo}/lib"
+        "${msys2Taglib}/lib"
+        "${msys2VampPluginSdk}/lib"
+        "${msys2Fftw}/lib"
+        "${msys2Libsamplerate}/lib"
+        "${msys2Libusb}/lib"
+        "${msys2Rubberband}/lib"
+        "${msys2Aubio}/lib"
+        "${msys2GettextRuntime}/lib"
+        "${msys2Libiconv}/lib"
+        "${msys2DrMingw}/lib"
+        "${winPkgs.windows.mingw_w64_pthreads}/lib"
+      ];
+
+      mingwLdFlags = pkgs.lib.concatStringsSep " " [
+        "-L${msys2Boost}/lib"
+        "-L${msys2BoostLibs}/lib"
+        "-L${msys2Glib}/lib"
+        "-L${msys2Libsigcxx}/lib"
+        "-L${msys2Glibmm}/lib"
+        "-L${msys2Libsndfile}/lib"
+        "-L${msys2Curl}/lib"
+        "-L${msys2Libarchive}/lib"
+        "-L${msys2Liblo}/lib"
+        "-L${msys2Taglib}/lib"
+        "-L${msys2VampPluginSdk}/lib"
+        "-L${msys2Fftw}/lib"
+        "-L${msys2Libsamplerate}/lib"
+        "-L${msys2Libusb}/lib"
+        "-L${msys2Rubberband}/lib"
+        "-L${msys2Aubio}/lib"
+        "-L${msys2GettextRuntime}/lib"
+        "-L${msys2Libiconv}/lib"
+        "-L${msys2DrMingw}/lib"
+        "-L${winPkgs.windows.mingw_w64_pthreads}/lib"
+      ];
+
+      ccWrapper = pkgs.writeShellScriptBin "${winPkgs.stdenv.cc.targetPrefix}gcc-msys2" ''
+        exec ${winPkgs.stdenv.cc.targetPrefix}gcc ${mingwLdFlags} "$@"
+      '';
+
+      cxxWrapper = pkgs.writeShellScriptBin "${winPkgs.stdenv.cc.targetPrefix}g++-msys2" ''
+        exec ${winPkgs.stdenv.cc.targetPrefix}g++ ${mingwLdFlags} "$@"
+      '';
 
       pkgConfigWrapper = pkgs.writeShellScriptBin "pkg-config" ''
         export PKG_CONFIG_PATH="${mingwPkgConfigPath}''${PKG_CONFIG_PATH:+:''${PKG_CONFIG_PATH}}"
@@ -169,12 +289,30 @@
           msys2Libarchive
           msys2Liblo
           msys2Taglib
+          msys2VampPluginSdk
+          msys2Fftw
+          msys2Libsamplerate
+          msys2Libusb
+          msys2Rubberband
+          msys2Aubio
+          msys2GettextRuntime
+          msys2Libiconv
+          winPkgs.windows.mingw_w64_pthreads
+          msys2DrMingw
         ];
 
         shellHook = ''
+          export CC=${ccWrapper}/bin/${winPkgs.stdenv.cc.targetPrefix}gcc-msys2
+          export CXX=${cxxWrapper}/bin/${winPkgs.stdenv.cc.targetPrefix}g++-msys2
+          export AR=${winPkgs.stdenv.cc.targetPrefix}ar
+          export RANLIB=${winPkgs.stdenv.cc.targetPrefix}ranlib
+          export STRIP=${winPkgs.stdenv.cc.targetPrefix}strip
+          export WINDRES=${windresWrapper}/bin/windres
           export PKG_CONFIG=${pkgConfigWrapper}/bin/pkg-config
           export PKG_CONFIG_PATH=${mingwPkgConfigPath}''${PKG_CONFIG_PATH:+:''${PKG_CONFIG_PATH}}
           export PKG_CONFIG_LIBDIR=${mingwPkgConfigPath}
+          export LIBRARY_PATH=${mingwLibraryPath}''${LIBRARY_PATH:+:''${LIBRARY_PATH}}
+          export NIX_LDFLAGS="${mingwLdFlags} ''${NIX_LDFLAGS:+$NIX_LDFLAGS}"
 
           echo "target: ${winPkgs.stdenv.hostPlatform.config}"
           echo "cc: $CC"
