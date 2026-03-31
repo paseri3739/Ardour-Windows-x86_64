@@ -220,6 +220,69 @@
         fixPkgConfig = true;
       };
 
+      msys2Serd = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-serd";
+        version = "0.32.8-1";
+        sha256 = "sha256-IIA5mLbCjWzezjGQs3ByzSBlK9J9bbul4Ya7dXxeICw=";
+        fixPkgConfig = true;
+      };
+
+      msys2Sord = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-sord";
+        version = "0.16.22-1";
+        sha256 = "sha256-eIGOhk0v6vF1Mi4e0bF9IpUutuvoRhWpBu50jNKLPjI=";
+        fixPkgConfig = true;
+      };
+
+      msys2Sratom = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-sratom";
+        version = "0.6.22-1";
+        sha256 = "sha256-YfirzJTCEX2aTfChkh0VcRMoAPioJmKOJ1jlTTmXm3I=";
+        fixPkgConfig = true;
+      };
+
+      msys2Lilv = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-lilv";
+        version = "0.26.4-1";
+        sha256 = "sha256-z15AJ8lT8alKehmS5u9Xj/1L+O7ceIgwqtJRfTY2m7Q=";
+        fixPkgConfig = true;
+      };
+
+      msys2Libogg = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libogg";
+        version = "1.3.6-1";
+        sha256 = "sha256-fvnsFkA+FImjfDpc5YsINAi6aUxoguZzY54iUN+Yu4s=";
+        fixPkgConfig = true;
+      };
+
+      msys2Flac = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-flac";
+        version = "1.5.0-1";
+        sha256 = "sha256-1rL/gLlu62e75QBVK91LLlIc+F45tFKCWmRAVLh8BTs=";
+        fixPkgConfig = true;
+      };
+
+      msys2Libvorbis = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libvorbis";
+        version = "1.3.7-2";
+        sha256 = "sha256-ISKNL+DaMUlYDDyLR9dQmsNiWa/w/5WRZGfx0AuHAhw=";
+        fixPkgConfig = true;
+      };
+
+      msys2Fontconfig = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-fontconfig";
+        version = "2.17.1-1";
+        sha256 = "sha256-gd06AK1B9Uwf2RQNad606KuuWgqHpoDIBrx2IQsEom4=";
+        fixPkgConfig = true;
+      };
+
+      msys2Freetype = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-freetype";
+        version = "2.14.3-1";
+        sha256 = "sha256-s+MQ9FfJA0j9FLjBCF6cA2AW0WiBKmV/7CH0lvfj3pk=";
+        fixPkgConfig = true;
+      };
+
       msys2Libxml2 = mkMsys2MingwPackage {
         pname = "mingw-w64-x86_64-libxml2";
         version = "2.15.2-1";
@@ -292,6 +355,15 @@
         "${msys2Cairomm}/lib/pkgconfig"
         "${msys2Pangomm}/lib/pkgconfig"
         "${msys2Lv2}/lib/pkgconfig"
+        "${msys2Serd}/lib/pkgconfig"
+        "${msys2Sord}/lib/pkgconfig"
+        "${msys2Sratom}/lib/pkgconfig"
+        "${msys2Lilv}/lib/pkgconfig"
+        "${msys2Libogg}/lib/pkgconfig"
+        "${msys2Flac}/lib/pkgconfig"
+        "${msys2Libvorbis}/lib/pkgconfig"
+        "${msys2Fontconfig}/lib/pkgconfig"
+        "${msys2Freetype}/lib/pkgconfig"
         "${msys2Libxml2}/lib/pkgconfig"
         "${msys2Jack2}/lib/pkgconfig"
         "${msys2Libwebsockets}/lib/pkgconfig"
@@ -323,6 +395,15 @@
         "${msys2Cairomm}/lib"
         "${msys2Pangomm}/lib"
         "${msys2Lv2}/lib"
+        "${msys2Serd}/lib"
+        "${msys2Sord}/lib"
+        "${msys2Sratom}/lib"
+        "${msys2Lilv}/lib"
+        "${msys2Libogg}/lib"
+        "${msys2Flac}/lib"
+        "${msys2Libvorbis}/lib"
+        "${msys2Fontconfig}/lib"
+        "${msys2Freetype}/lib"
         "${msys2Libxml2}/lib"
         "${msys2Jack2}/lib"
         "${msys2Libwebsockets}/lib"
@@ -357,6 +438,15 @@
         "-L${msys2Cairomm}/lib"
         "-L${msys2Pangomm}/lib"
         "-L${msys2Lv2}/lib"
+        "-L${msys2Serd}/lib"
+        "-L${msys2Sord}/lib"
+        "-L${msys2Sratom}/lib"
+        "-L${msys2Lilv}/lib"
+        "-L${msys2Libogg}/lib"
+        "-L${msys2Flac}/lib"
+        "-L${msys2Libvorbis}/lib"
+        "-L${msys2Fontconfig}/lib"
+        "-L${msys2Freetype}/lib"
         "-L${msys2Libxml2}/lib"
         "-L${msys2Jack2}/lib"
         "-L${msys2Libwebsockets}/lib"
@@ -414,6 +504,15 @@
           msys2Cairomm
           msys2Pangomm
           msys2Lv2
+          msys2Serd
+          msys2Sord
+          msys2Sratom
+          msys2Lilv
+          msys2Libogg
+          msys2Flac
+          msys2Libvorbis
+          msys2Fontconfig
+          msys2Freetype
           msys2Libxml2
           msys2GettextRuntime
           msys2Libiconv
