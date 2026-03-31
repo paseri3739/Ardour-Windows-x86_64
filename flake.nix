@@ -245,6 +245,27 @@
         sha256 = "sha256-P7Cqx97jxZHuTVQhkVAlUmLOCLLFYRY6kXzwt90pUi8=";
       };
 
+      msys2Jack2 = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-jack2";
+        version = "1.9.22-1";
+        sha256 = "1xr2cf55cc0dwd5fzd283x1yl7k5r5c7nr0fb3sjjv40xx8kpyq4";
+        fixPkgConfig = true;
+      };
+
+      msys2Libwebsockets = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libwebsockets";
+        version = "4.4.1-2";
+        sha256 = "18k98a9ybl5mn0xs1gnx8d2yj7v372yhzfnppq1n1kx00ylsg1g6";
+        fixPkgConfig = true;
+      };
+
+      msys2Portaudio = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-portaudio";
+        version = "1~19.7.0-4";
+        sha256 = "sha256-98pLmfV/O67yQ+KC4m64cBw6X+sQjbqa6v9zsNQbEJM=";
+        fixPkgConfig = true;
+      };
+
       windresWrapper = pkgs.writeShellScriptBin "windres" ''
         exec ${winPkgs.stdenv.cc.targetPrefix}windres "$@"
       '';
@@ -272,6 +293,9 @@
         "${msys2Pangomm}/lib/pkgconfig"
         "${msys2Lv2}/lib/pkgconfig"
         "${msys2Libxml2}/lib/pkgconfig"
+        "${msys2Jack2}/lib/pkgconfig"
+        "${msys2Libwebsockets}/lib/pkgconfig"
+        "${msys2Portaudio}/lib/pkgconfig"
         "${winPkgs.windows.mcfgthreads.dev}/lib/pkgconfig"
       ];
 
@@ -300,6 +324,9 @@
         "${msys2Pangomm}/lib"
         "${msys2Lv2}/lib"
         "${msys2Libxml2}/lib"
+        "${msys2Jack2}/lib"
+        "${msys2Libwebsockets}/lib"
+        "${msys2Portaudio}/lib"
         "${msys2GettextRuntime}/lib"
         "${msys2Libiconv}/lib"
         "${msys2DrMingw}/lib"
@@ -331,6 +358,9 @@
         "-L${msys2Pangomm}/lib"
         "-L${msys2Lv2}/lib"
         "-L${msys2Libxml2}/lib"
+        "-L${msys2Jack2}/lib"
+        "-L${msys2Libwebsockets}/lib"
+        "-L${msys2Portaudio}/lib"
         "-L${msys2GettextRuntime}/lib"
         "-L${msys2Libiconv}/lib"
         "-L${msys2DrMingw}/lib"
@@ -387,6 +417,9 @@
           msys2Libxml2
           msys2GettextRuntime
           msys2Libiconv
+          msys2Jack2
+          msys2Libwebsockets
+          msys2Portaudio
           winPkgs.windows.mingw_w64_pthreads
           msys2DrMingw
         ];
