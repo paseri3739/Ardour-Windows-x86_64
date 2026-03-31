@@ -283,6 +283,65 @@
         fixPkgConfig = true;
       };
 
+      msys2Cppunit = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-cppunit";
+        version = "1.15.1-3";
+        sha256 = "sha256-SYNEqkaOs2vxPd1YmS6TvaWM5qevwxCCR0Iw27751+g=";
+        fixPkgConfig = true;
+      };
+
+      msys2Readline = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-readline";
+        version = "8.3.003-1";
+        sha256 = "sha256-uUPX4qYaxuAwTqwRzc7hU3CowszuW4RIf4rWweED1mw=";
+        fixPkgConfig = true;
+      };
+
+      msys2Asio = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-asio";
+        version = "1.36.0-1";
+        sha256 = "sha256-8dtmw8Z0PC+sv+fapntkOm/uZJHXL0xSfsx+xW1v3cA=";
+      };
+
+      msys2Ncurses = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-ncurses";
+        version = "6.6-2";
+        sha256 = "sha256-HW+Z8gIVb6Lfyu/J9UzZO5Mi/dM+RKXl+pS/ya/4rq4=";
+        fixPkgConfig = true;
+      };
+
+      paAsioHeader = pkgs.stdenvNoCC.mkDerivation {
+        pname = "pa-asio-header";
+        version = "19.7.0";
+        src = pkgs.fetchurl {
+          url = "https://raw.githubusercontent.com/PortAudio/portaudio/v19.7.0/include/pa_asio.h";
+          sha256 = "sha256-u2tj699DFW/h9qEAJ+LUFWkTqdaogH1aFJbiwtpvKgY=";
+        };
+        dontUnpack = true;
+        dontConfigure = true;
+        dontBuild = true;
+        installPhase = ''
+          runHook preInstall
+          mkdir -p "$out/include"
+          cp "$src" "$out/include/pa_asio.h"
+          runHook postInstall
+        '';
+      };
+
+      termcapCompat = pkgs.stdenvNoCC.mkDerivation {
+        pname = "mingw-termcap-compat";
+        version = "1";
+        dontUnpack = true;
+        dontConfigure = true;
+        dontBuild = true;
+        installPhase = ''
+          runHook preInstall
+          mkdir -p "$out/lib"
+          ln -s ${msys2Ncurses}/lib/libncurses.a "$out/lib/libtermcap.a"
+          runHook postInstall
+        '';
+      };
+
       msys2Libxml2 = mkMsys2MingwPackage {
         pname = "mingw-w64-x86_64-libxml2";
         version = "2.15.2-1";
@@ -364,6 +423,9 @@
         "${msys2Libvorbis}/lib/pkgconfig"
         "${msys2Fontconfig}/lib/pkgconfig"
         "${msys2Freetype}/lib/pkgconfig"
+        "${msys2Cppunit}/lib/pkgconfig"
+        "${msys2Readline}/lib/pkgconfig"
+        "${msys2Ncurses}/lib/pkgconfig"
         "${msys2Libxml2}/lib/pkgconfig"
         "${msys2Jack2}/lib/pkgconfig"
         "${msys2Libwebsockets}/lib/pkgconfig"
@@ -404,6 +466,10 @@
         "${msys2Libvorbis}/lib"
         "${msys2Fontconfig}/lib"
         "${msys2Freetype}/lib"
+        "${msys2Cppunit}/lib"
+        "${msys2Readline}/lib"
+        "${msys2Ncurses}/lib"
+        "${termcapCompat}/lib"
         "${msys2Libxml2}/lib"
         "${msys2Jack2}/lib"
         "${msys2Libwebsockets}/lib"
@@ -447,6 +513,10 @@
         "-L${msys2Libvorbis}/lib"
         "-L${msys2Fontconfig}/lib"
         "-L${msys2Freetype}/lib"
+        "-L${msys2Cppunit}/lib"
+        "-L${msys2Readline}/lib"
+        "-L${msys2Ncurses}/lib"
+        "-L${termcapCompat}/lib"
         "-L${msys2Libxml2}/lib"
         "-L${msys2Jack2}/lib"
         "-L${msys2Libwebsockets}/lib"
@@ -513,6 +583,12 @@
           msys2Libvorbis
           msys2Fontconfig
           msys2Freetype
+          msys2Cppunit
+          msys2Readline
+          msys2Asio
+          msys2Ncurses
+          paAsioHeader
+          termcapCompat
           msys2Libxml2
           msys2GettextRuntime
           msys2Libiconv
@@ -533,6 +609,8 @@
           export PKG_CONFIG=${pkgConfigWrapper}/bin/pkg-config
           export PKG_CONFIG_PATH=${mingwPkgConfigPath}''${PKG_CONFIG_PATH:+:''${PKG_CONFIG_PATH}}
           export PKG_CONFIG_LIBDIR=${mingwPkgConfigPath}
+          export CFLAGS="-I${paAsioHeader}/include ''${CFLAGS:+$CFLAGS}"
+          export CXXFLAGS="-I${paAsioHeader}/include ''${CXXFLAGS:+$CXXFLAGS}"
           export LIBRARY_PATH=${mingwLibraryPath}''${LIBRARY_PATH:+:''${LIBRARY_PATH}}
           export NIX_LDFLAGS="${mingwLdFlags} ''${NIX_LDFLAGS:+$NIX_LDFLAGS}"
 
