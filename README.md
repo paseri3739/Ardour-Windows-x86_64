@@ -3,11 +3,8 @@
 This repository contains a Nix flake that prepares a reproducible MinGW-based
 development shell for building Ardour for Windows x86_64 from Linux.
 
-The flake started as a minimal shell with several stubbed dependencies, but the
-current setup replaces those shortcuts with real cross-compiled dependencies
-resolved through `pkgsCross.mingwW64` and `pkg-config`, following the same
-general approach used in the macOS arm64 companion repository where implicit
-build inputs had to be made explicit.
+The current setup avoids fake dependency stubs and uses real libraries,
+headers, and pkg-config metadata for Windows cross builds.
 
 ## Intended use
 
@@ -18,184 +15,101 @@ this repository, please do not redistribute them.
 
 ## Current status
 
-- `nix develop --impure .#default` now resolves real MinGW dependencies instead
-  of generating fake `pkg-config` stubs for missing libraries.
-- `rubberband` is provided by a custom package derived from nixpkgs so the
-  Windows cross build no longer fails on the unsupported cross-JDK dependency
-  pulled in by the stock package.
-- The development shell exports MinGW toolchain variables together with
-  `PKG_CONFIG_PATH`, `NIX_CFLAGS_COMPILE`, and `NIX_LDFLAGS` derived from the
-  realized target dependency closure.
-- First shell entry is still expensive because it realizes a large MinGW
-  closure.
-- A full end-to-end `waf configure` and build verification has not yet been
-  recorded in this repository.
+- `nix develop --impure .#default` provides a MinGW toolchain plus explicit
+  Windows dependency paths.
+- The regex workaround was replaced with a real source build of
+  `mingw-libgnurx` (from Ardour's Windows build dependency list), and the
+  previous local `regex.h` compatibility shim was removed.
+- PortAudio is built from source (`svn1963`) with ASIO support, and
+  `pa_asio.h` is installed into the package output for Waf detection.
+- `waf configure` has been observed to succeed in this environment (for example
+  with `--dist-target=mingw --ptformat --with-backends=jack,portaudio,dummy
+  --optimize --cxx17`).
+- Full `waf` compile/link completion is still expected to be validated per
+  working tree and option set.
 
 ## Repository layout
 
 - `flake.nix`
   Main MinGW dev-shell and dependency-resolution recipe.
-- `rubberband.nix`
-  Custom `rubberband` package used to avoid the unsupported cross-JDK path in
-  nixpkgs while keeping a real Windows library package.
 - `ardour/`
   Ardour source tree used from this workspace.
 
 ## How the flake is structured
 
-Unlike the macOS arm64 repository, this flake is currently organized as a
-single development-shell stage rather than a multi-stage packaging pipeline.
+The flake is organized around a single development shell (`devShell`) for
+Windows cross compilation.
 
 ### 1. `devShell`
 
-The default shell is a `pkgs.mkShell` that prepares the Windows cross-build
-environment.
+The default shell (`pkgs.mkShell`) prepares the Windows cross-build environment.
 
 It does the following:
 
-- Imports `nixpkgs` with `allowBroken` and `allowUnsupportedSystem` enabled so
-  cross packages that are usable in practice can still be evaluated.
-- Uses `pkgs.pkgsCross.mingwW64` as the source of target libraries and MinGW
-  compiler tools.
-- Builds a target library set that includes the libraries Ardour's Windows Waf
-  configure step is expected to discover.
-- Uses a shell-time `nix build --impure --no-link` over the propagated closure
-  of those libraries so the `.pc`, header, and library trees exist before
-  configure runs.
-- Selects the MinGW `pkg-config` wrapper and exports it as `PKG_CONFIG`.
-- Computes `PKG_CONFIG_PATH`, `PKG_CONFIG_LIBDIR`, `NIX_CFLAGS_COMPILE`, and
-  `NIX_LDFLAGS` from the realized closure instead of hard-coding individual
-  store paths.
-- Exports `CC`, `CXX`, `AR`, `RANLIB`, `STRIP`, and `WINDRES` for the MinGW
-  toolchain.
-- Repairs the local `ardour/.git` link shape expected by the source tree when
-  used from this workspace layout.
+- Uses `pkgs.pkgsCross.mingwW64` for the cross compiler and core toolchain.
+- Imports many target runtime/development libraries from MSYS2 binary packages
+  (`mingw-w64-x86_64-*`) into the Nix store.
+- Provides wrappers for `gcc`, `g++`, `windres`, and `pkg-config` so compile,
+  link, and pkg-config lookups consistently target MinGW outputs.
+- Exports explicit `PKG_CONFIG_PATH` and `PKG_CONFIG_LIBDIR` for the intended
+  target `.pc` set.
+- Exports explicit include and library search paths through `CPPFLAGS`,
+  `CFLAGS`, `CXXFLAGS`, `LIBRARY_PATH`, and `NIX_LDFLAGS`.
 
-This stage exists because Ardour's Windows build expects more than just a
-compiler on `PATH`: it also depends on correctly discoverable `.pc` files,
-headers, and library directories for a fairly large MinGW dependency set.
+This shell exists because Ardour's Windows build expects not just a compiler,
+but also correctly discoverable `.pc` files, headers, and libraries for a large
+dependency set.
 
-## Dependency selection
+## Dependency strategy
 
-The current flake uses a mixed strategy.
+The current flake uses three sources:
 
-### Dependencies kept from nixpkgs
+- `pkgsCross.mingwW64` for compiler/toolchain and selected base libraries.
+- MSYS2 MinGW binary packages imported into Nix for many user-space libraries
+  Ardour checks with pkg-config.
+- Small local derivations where needed for compatibility:
+  `mingw-libgnurx` (real GNU regex library), `termcap` compatibility symlink,
+  and source-built PortAudio `svn1963` including ASIO support.
 
-The following are taken directly from `pkgsCross.mingwW64`:
-
-- `boost`
-- `glib`
-- `glibmm`
-- `libsndfile`
-- `curl`
-- `libarchive`
-- `liblo`
-- `taglib`
-- `vamp-plugin-sdk`
-- `fftw`
-- `fftwFloat`
-- `aubio`
-- `libpng`
-- `pango`
-- `cairomm`
-- `pangomm`
-- `lv2`
-- `libxml2`
-- `libwebsockets`
-- `jack2`
-- `portaudio`
-- `lrdf`
-- `libsamplerate`
-- `serd`
-- `sord`
-- `sratom`
-- `lilv`
-- `libogg`
-- `flac`
-- `libvorbis`
-- `libusb1`
-- `cppunit`
-- `readline`
-- `ncurses`
-- `fontconfig`
-- `freetype`
-- `windows.mcfgthreads`
-
-This is intentionally conservative. The immediate goal here is not to redesign
-Ardour's Windows dependency stack, but to make the existing cross-build inputs
-real and discoverable without local stubs.
-
-### Dependencies customized for this repository
-
-The following dependency is intentionally overridden:
-
-- `rubberband`
-
-#### Why `rubberband` is custom
-
-The stock nixpkgs `pkgsCross.mingwW64.rubberband` package pulls in
-`jdk_headless` through its Meson configuration path. That becomes a hard
-evaluation failure on `x86_64-windows` because the MinGW cross JDK is marked as
-unsupported.
-
-Ardour only needs the native C/C++ `rubberband` library for this build, so the
-custom recipe in `rubberband.nix` follows the nixpkgs package closely while
-disabling JNI with:
-
-- `-Djni=disabled`
-
-It also disables tests:
-
-- `-Dtests=disabled`
-
-That keeps the package aligned with the upstream source while removing the
-cross-JDK blocker that previously forced stub-based workarounds.
+`lrdf` remains not found in this setup (same as before) and is treated as an
+optional dependency for this workflow.
 
 ## Implicit dependencies made explicit
 
-The most important outcome of the recent cleanup was confirming that the
-Windows build was failing not because Ardour lacked dependency support, but
-because the shell had been hiding missing cross-build inputs behind ad hoc
-stubs.
+The shell now encodes these requirements explicitly:
 
-The current flake makes the following implicit requirements explicit:
+- Use MinGW-targeted `pkg-config`, not host `pkg-config`.
+- Keep MinGW `.pc` providers in `PKG_CONFIG_LIBDIR` so Waf checks resolve
+  consistently.
+- Export include and link paths explicitly for the selected target stack.
+- Provide real Windows regex via `mingw-libgnurx` (`regex.h`, `libregex.a`) in
+  place of a compatibility header shim.
+- Provide `pa_asio.h` from the PortAudio package so Ardour's optional ASIO
+  check can succeed when enabled.
 
-- A real MinGW `pkg-config` wrapper must be used, not the host wrapper.
-- The full target dependency closure must be realized before configure runs, so
-  referenced `.pc` files actually exist in the store.
-- Include and library search paths must be exported from that closure rather
-  than assumed by the build system.
-- `readline` is now provided by real cross packages together with `ncurses`
-  instead of a fake local definition.
-- `gio-windows-2.0` and the surrounding GLib discovery path now come from real
-  cross GLib packages instead of handwritten `.pc` shims.
-- `rubberband` now resolves to a real Windows library package instead of being
-  stubbed out.
+Note on ASIO headers: Ardour's PortAudio backend checks for `pa_asio.h` and
+includes that header directly. For this workflow, installing `pa_asio.h` is
+the relevant requirement; copying the whole ASIO SDK into the dev shell include
+path is not required by Ardour's current source checks.
 
-## Why some official differences remain
+## Known differences from Ardour official packaging
 
-This repository is still narrower in scope than the macOS arm64 companion
-repository.
+This repository is focused on reproducible build inputs and compile workflow,
+not on reproducing the entire official Windows release pipeline.
 
-- It currently focuses on dependency resolution and shell setup, not on
-  producing a finished Windows installer or redistributable bundle.
-- Some Windows-specific packaging details from Ardour's official release
-  process, such as DrMingw integration and final artifact assembly, are not yet
-  modeled here.
-- The shell is designed to support proper `waf configure` discovery first, then
-  later build and packaging work can be layered on top.
+- Installer assembly and final redistribution layout are out of scope here.
+- Optional dependency/version deltas may exist versus official nightly build
+  hosts.
+- The shell primarily targets reliable `waf configure` and subsequent
+  compilation from this workspace.
 
-## Trial-and-error history summarized
+## Notes from recent fixes
 
-The recent iterations boiled down to three main findings.
-
-- The old shell could appear to move forward only because several missing
-  dependencies were being faked locally.
-- Replacing those fakes with real MinGW packages exposed that the actual hard
-  blocker was nixpkgs `rubberband` depending on an unsupported cross JDK.
-- Once `rubberband` was re-packaged without JNI, the shell could go back to a
-  cleaner model where dependency discovery is driven by actual `.pc`, header,
-  and library outputs from Nix packages.
+- Windows regex now comes from a real `libgnurx` source build, aligned with
+  Ardour nightly dependency notes.
+- The previous `regex.h -> <regex>` compatibility trick was removed.
+- PortAudio ASIO exposure is handled by shipping `pa_asio.h` in the package
+  output used by the shell.
 
 ## Usage
 
@@ -212,29 +126,25 @@ For example:
 
 ```bash
 cd ardour
-python3 ./waf configure --dist-target=mingw --no-dr-mingw
+python3 ./waf configure --dist-target=mingw --ptformat --with-backends=jack,portaudio,dummy --optimize --cxx17
 ```
 
-The exact Waf flags you want may still depend on how closely you want to match
-Ardour's official Windows packaging flow. The shell is intended to provide the
-dependency-resolution layer those commands expect.
+The exact Waf flags still depend on your target workflow. The shell is intended
+to provide the dependency-resolution layer those commands expect.
 
-## Result layout
+## Outputs today
 
-At the moment this repository does not produce a final packaged Windows result
-tree comparable to the macOS repository's staged outputs.
+At the moment this repository does not produce a final packaged Windows
+installer. The main outputs are:
 
-The main concrete outputs today are:
+- the development shell
+- the resolved MinGW dependency set in the Nix store
+- local helper derivations used by the shell (`mingw-libgnurx`,
+  `mingw-termcap-compat`, source-built PortAudio)
 
-- the development shell itself
-- the realized MinGW dependency closure in the Nix store
-- the custom `rubberband` derivation used by that shell
+## Suggested next checks
 
-## If you want to go further
-
-The next logical steps are:
-
-- record a clean `waf configure` invocation that succeeds inside this shell
-- verify a full Windows build, not just dependency realization
-- decide which parts of Ardour's official Windows packaging flow should be
-  reproduced inside Nix and which should remain external
+- complete and record a full `./waf` build from this shell
+- capture any remaining link/runtime deltas against official nightly build logs
+- decide whether final installer packaging should stay external or move into
+  Nix derivations
