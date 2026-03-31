@@ -21,6 +21,7 @@
           version,
           sha256,
           fixPkgConfig ? false,
+          postInstall ? "",
         }:
         pkgs.stdenvNoCC.mkDerivation {
           inherit pname version;
@@ -56,6 +57,7 @@
               done
             fi
           ''
+          + postInstall
           + ''
             runHook postInstall
           '';
@@ -197,6 +199,11 @@
         version = "1.18.4-4";
         sha256 = "sha256-FIcSBWLkJgGoRi2ZUwmPaFxROZmi5HKjUk+pZDS+MpA=";
         fixPkgConfig = true;
+        postInstall = ''
+          substituteInPlace "$out/lib/pkgconfig/cairo.pc" \
+            --replace-fail 'Cflags: -I''${includedir}/cairo' \
+                           'Cflags: -I''${includedir}/cairo -I${msys2Freetype}/include/freetype2 -I${msys2Fontconfig}/include'
+        '';
       };
 
       msys2Cairomm = mkMsys2MingwPackage {
@@ -225,6 +232,9 @@
         version = "0.32.8-1";
         sha256 = "sha256-IIA5mLbCjWzezjGQs3ByzSBlK9J9bbul4Ya7dXxeICw=";
         fixPkgConfig = true;
+        postInstall = ''
+          ln -sfn serd-0/serd "$out/include/serd"
+        '';
       };
 
       msys2Sord = mkMsys2MingwPackage {
@@ -232,6 +242,9 @@
         version = "0.16.22-1";
         sha256 = "sha256-eIGOhk0v6vF1Mi4e0bF9IpUutuvoRhWpBu50jNKLPjI=";
         fixPkgConfig = true;
+        postInstall = ''
+          ln -sfn sord-0/sord "$out/include/sord"
+        '';
       };
 
       msys2Sratom = mkMsys2MingwPackage {
@@ -239,6 +252,9 @@
         version = "0.6.22-1";
         sha256 = "sha256-YfirzJTCEX2aTfChkh0VcRMoAPioJmKOJ1jlTTmXm3I=";
         fixPkgConfig = true;
+        postInstall = ''
+          ln -sfn sratom-0/sratom "$out/include/sratom"
+        '';
       };
 
       msys2Lilv = mkMsys2MingwPackage {
@@ -246,6 +262,9 @@
         version = "0.26.4-1";
         sha256 = "sha256-z15AJ8lT8alKehmS5u9Xj/1L+O7ceIgwqtJRfTY2m7Q=";
         fixPkgConfig = true;
+        postInstall = ''
+          ln -sfn lilv-0/lilv "$out/include/lilv"
+        '';
       };
 
       msys2Libogg = mkMsys2MingwPackage {
@@ -297,12 +316,6 @@
         fixPkgConfig = true;
       };
 
-      msys2Asio = mkMsys2MingwPackage {
-        pname = "mingw-w64-x86_64-asio";
-        version = "1.36.0-1";
-        sha256 = "sha256-8dtmw8Z0PC+sv+fapntkOm/uZJHXL0xSfsx+xW1v3cA=";
-      };
-
       msys2Ncurses = mkMsys2MingwPackage {
         pname = "mingw-w64-x86_64-ncurses";
         version = "6.6-2";
@@ -310,22 +323,11 @@
         fixPkgConfig = true;
       };
 
-      paAsioHeader = pkgs.stdenvNoCC.mkDerivation {
-        pname = "pa-asio-header";
-        version = "19.7.0";
-        src = pkgs.fetchurl {
-          url = "https://raw.githubusercontent.com/PortAudio/portaudio/v19.7.0/include/pa_asio.h";
-          sha256 = "sha256-u2tj699DFW/h9qEAJ+LUFWkTqdaogH1aFJbiwtpvKgY=";
-        };
-        dontUnpack = true;
-        dontConfigure = true;
-        dontBuild = true;
-        installPhase = ''
-          runHook preInstall
-          mkdir -p "$out/include"
-          cp "$src" "$out/include/pa_asio.h"
-          runHook postInstall
-        '';
+      steinbergAsioSdk = pkgs.fetchFromGitHub {
+        owner = "audiosdk";
+        repo = "asio";
+        rev = "496a0765b8bb9c26f764f22f9a9712a937177db2";
+        hash = "sha256-rUpLQsdvLVHxKGV57Pm3jTx6/avc6KMzzNzJ4BIjg+A=";
       };
 
       termcapCompat = pkgs.stdenvNoCC.mkDerivation {
@@ -381,18 +383,82 @@
         fixPkgConfig = true;
       };
 
-      msys2Portaudio = mkMsys2MingwPackage {
+      msys2Portaudio = winPkgs.stdenv.mkDerivation rec {
         pname = "mingw-w64-x86_64-portaudio";
-        version = "1~19.7.0-4";
-        sha256 = "sha256-98pLmfV/O67yQ+KC4m64cBw6X+sQjbqa6v9zsNQbEJM=";
-        fixPkgConfig = true;
+        version = "svn1963";
+
+        src = pkgs.fetchurl {
+          url = "http://ardour.org/files/deps/portaudio-svn1963.tgz";
+          hash = "sha256-me0+KQ4C/BUBC4/Vwxh94yqR+g0Y+ovKMavn3EsMDdY=";
+        };
+
+        arWrapper = pkgs.writeShellScriptBin "ar" ''
+          exec ${winPkgs.stdenv.cc.targetPrefix}ar "$@"
+        '';
+
+        ranlibWrapper = pkgs.writeShellScriptBin "ranlib" ''
+          exec ${winPkgs.stdenv.cc.targetPrefix}ranlib "$@"
+        '';
+
+        nativeBuildInputs = [
+          pkgs.autoconf
+          pkgs.automake
+          pkgs.libtool
+          pkgs.which
+          arWrapper
+          ranlibWrapper
+        ];
+
+        configurePhase = ''
+          runHook preConfigure
+
+          export AR=${winPkgs.stdenv.cc.targetPrefix}ar
+          export RANLIB=${winPkgs.stdenv.cc.targetPrefix}ranlib
+
+          cp -r ${steinbergAsioSdk} ./asiosdk
+          chmod -R u+w ./asiosdk
+
+          ./configure \
+            --build=${pkgs.stdenv.hostPlatform.config} \
+            --host=${winPkgs.stdenv.hostPlatform.config} \
+            --prefix=$out \
+            --with-host_os=mingw32 \
+            --with-winapi=wmme,asio \
+            --with-asiodir=$PWD/asiosdk
+
+          runHook postConfigure
+        '';
+
+        buildPhase = ''
+          runHook preBuild
+          make lib/libportaudio.la portaudio-2.0.pc
+          runHook postBuild
+        '';
+
+        installPhase = ''
+          runHook preInstall
+          make install
+          install -m 644 include/pa_asio.h $out/include/pa_asio.h
+          runHook postInstall
+        '';
       };
 
       windresWrapper = pkgs.writeShellScriptBin "windres" ''
         exec ${winPkgs.stdenv.cc.targetPrefix}windres "$@"
       '';
 
+      regexCompatHeaders = pkgs.writeTextDir "include/regex.h" ''
+        #ifndef ARDOUR_WINDOWS_COMPAT_REGEX_H
+        #define ARDOUR_WINDOWS_COMPAT_REGEX_H
+
+        #include <regex>
+
+        #endif
+      '';
+
       mingwPkgConfigPath = pkgs.lib.concatStringsSep ":" [
+        "${winPkgs.zlib.dev}/lib/pkgconfig"
+        "${winPkgs.openssl.dev}/lib/pkgconfig"
         "${msys2Glib}/lib/pkgconfig"
         "${msys2Libsigcxx}/lib/pkgconfig"
         "${msys2Glibmm}/lib/pkgconfig"
@@ -527,12 +593,51 @@
         "-L${winPkgs.windows.mingw_w64_pthreads}/lib"
       ];
 
+      mingwTailLibs = pkgs.lib.concatStringsSep " " [
+        "-lfftw3f_threads"
+        "-lsratom-0"
+        "-lsord-0"
+        "-lserd-0"
+      ];
+
+      mingwWrapperCppFlags = pkgs.lib.concatStringsSep " " [
+        "-I${regexCompatHeaders}/include"
+      ];
+
       ccWrapper = pkgs.writeShellScriptBin "${winPkgs.stdenv.cc.targetPrefix}gcc-msys2" ''
-        exec ${winPkgs.stdenv.cc.targetPrefix}gcc ${mingwLdFlags} "$@"
+        linking=1
+        for arg in "$@"; do
+          case "$arg" in
+            -c|-E|-S)
+              linking=0
+              break
+              ;;
+          esac
+        done
+
+        if [ "$linking" -eq 1 ]; then
+          exec ${winPkgs.stdenv.cc.targetPrefix}gcc ${mingwWrapperCppFlags} ${mingwLdFlags} "$@" ${mingwTailLibs}
+        else
+          exec ${winPkgs.stdenv.cc.targetPrefix}gcc ${mingwWrapperCppFlags} ${mingwLdFlags} "$@"
+        fi
       '';
 
       cxxWrapper = pkgs.writeShellScriptBin "${winPkgs.stdenv.cc.targetPrefix}g++-msys2" ''
-        exec ${winPkgs.stdenv.cc.targetPrefix}g++ ${mingwLdFlags} "$@"
+        linking=1
+        for arg in "$@"; do
+          case "$arg" in
+            -c|-E|-S)
+              linking=0
+              break
+              ;;
+          esac
+        done
+
+        if [ "$linking" -eq 1 ]; then
+          exec ${winPkgs.stdenv.cc.targetPrefix}g++ ${mingwWrapperCppFlags} ${mingwLdFlags} "$@" ${mingwTailLibs}
+        else
+          exec ${winPkgs.stdenv.cc.targetPrefix}g++ ${mingwWrapperCppFlags} ${mingwLdFlags} "$@"
+        fi
       '';
 
       pkgConfigWrapper = pkgs.writeShellScriptBin "pkg-config" ''
@@ -551,6 +656,10 @@
         ];
 
         buildInputs = [
+          winPkgs.zlib
+          winPkgs.zlib.dev
+          winPkgs.openssl.out
+          winPkgs.openssl.dev
           msys2Boost
           msys2BoostLibs
           msys2Glib
@@ -585,9 +694,7 @@
           msys2Freetype
           msys2Cppunit
           msys2Readline
-          msys2Asio
           msys2Ncurses
-          paAsioHeader
           termcapCompat
           msys2Libxml2
           msys2GettextRuntime
@@ -603,14 +710,16 @@
           export CC=${ccWrapper}/bin/${winPkgs.stdenv.cc.targetPrefix}gcc-msys2
           export CXX=${cxxWrapper}/bin/${winPkgs.stdenv.cc.targetPrefix}g++-msys2
           export AR=${winPkgs.stdenv.cc.targetPrefix}ar
+          export AS=${winPkgs.stdenv.cc.targetPrefix}as
           export RANLIB=${winPkgs.stdenv.cc.targetPrefix}ranlib
           export STRIP=${winPkgs.stdenv.cc.targetPrefix}strip
           export WINDRES=${windresWrapper}/bin/windres
           export PKG_CONFIG=${pkgConfigWrapper}/bin/pkg-config
           export PKG_CONFIG_PATH=${mingwPkgConfigPath}''${PKG_CONFIG_PATH:+:''${PKG_CONFIG_PATH}}
           export PKG_CONFIG_LIBDIR=${mingwPkgConfigPath}
-          export CFLAGS="-I${paAsioHeader}/include ''${CFLAGS:+$CFLAGS}"
-          export CXXFLAGS="-I${paAsioHeader}/include ''${CXXFLAGS:+$CXXFLAGS}"
+          export CPPFLAGS="-I${regexCompatHeaders}/include -I${winPkgs.zlib.dev}/include -I${winPkgs.openssl.dev}/include -I${msys2Freetype}/include/freetype2 -I${msys2Fontconfig}/include -I${msys2Serd}/include -I${msys2Sord}/include -I${msys2Sratom}/include -I${msys2Lilv}/include ''${CPPFLAGS:+$CPPFLAGS}"
+          export CFLAGS="$CPPFLAGS ''${CFLAGS:+$CFLAGS}"
+          export CXXFLAGS="$CPPFLAGS ''${CXXFLAGS:+$CXXFLAGS}"
           export LIBRARY_PATH=${mingwLibraryPath}''${LIBRARY_PATH:+:''${LIBRARY_PATH}}
           export NIX_LDFLAGS="${mingwLdFlags} ''${NIX_LDFLAGS:+$NIX_LDFLAGS}"
 
