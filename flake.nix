@@ -50,7 +50,9 @@
           + pkgs.lib.optionalString fixPkgConfig ''
             if [ -d "$out/lib/pkgconfig" ]; then
               for pc in "$out"/lib/pkgconfig/*.pc; do
-                substituteInPlace "$pc" --replace-fail '/mingw64' "$out"
+                if grep -q '/mingw64' "$pc"; then
+                  substituteInPlace "$pc" --replace-fail '/mingw64' "$out"
+                fi
               done
             fi
           ''
@@ -169,6 +171,48 @@
         fixPkgConfig = true;
       };
 
+      msys2Libpng = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libpng";
+        version = "1.6.56-1";
+        sha256 = "sha256-t9dHEbqXdGcuVHdhRTvNaGPFkAr0WXl8+Aj8rwbmvzs=";
+        fixPkgConfig = true;
+      };
+
+      msys2Pango = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-pango";
+        version = "1.56.4-3";
+        sha256 = "sha256-H+4BljXgSRLt8q5D4Gb8g9G9S3QEllBLz+zGagCI9Sc=";
+        fixPkgConfig = true;
+      };
+
+      msys2Harfbuzz = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-harfbuzz";
+        version = "13.2.1-1";
+        sha256 = "sha256-xBUh+SN0QlB6s7TiRvA6A6h0yydn63hNvRxEoemK/ug=";
+        fixPkgConfig = true;
+      };
+
+      msys2Cairo = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-cairo";
+        version = "1.18.4-4";
+        sha256 = "sha256-FIcSBWLkJgGoRi2ZUwmPaFxROZmi5HKjUk+pZDS+MpA=";
+        fixPkgConfig = true;
+      };
+
+      msys2Cairomm = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-cairomm";
+        version = "1.14.5-2";
+        sha256 = "sha256-tXE/EW9ilUZQjWYvvY5nVgDCYYfuBfrZ+oB7R8rg83g=";
+        fixPkgConfig = true;
+      };
+
+      msys2Pangomm = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-pangomm";
+        version = "2.48-2.56.1-2";
+        sha256 = "sha256-ONy8paP4q7C26jqRWULcE6h6c4NyQi6QI6U+vVrJbME=";
+        fixPkgConfig = true;
+      };
+
       msys2GettextRuntime = mkMsys2MingwPackage {
         pname = "mingw-w64-x86_64-gettext-runtime";
         version = "1.0-1";
@@ -206,6 +250,12 @@
         "${msys2Libusb}/lib/pkgconfig"
         "${msys2Rubberband}/lib/pkgconfig"
         "${msys2Aubio}/lib/pkgconfig"
+        "${msys2Libpng}/lib/pkgconfig"
+        "${msys2Pango}/lib/pkgconfig"
+        "${msys2Harfbuzz}/lib/pkgconfig"
+        "${msys2Cairo}/lib/pkgconfig"
+        "${msys2Cairomm}/lib/pkgconfig"
+        "${msys2Pangomm}/lib/pkgconfig"
         "${winPkgs.windows.mcfgthreads.dev}/lib/pkgconfig"
       ];
 
@@ -226,6 +276,12 @@
         "${msys2Libusb}/lib"
         "${msys2Rubberband}/lib"
         "${msys2Aubio}/lib"
+        "${msys2Libpng}/lib"
+        "${msys2Pango}/lib"
+        "${msys2Harfbuzz}/lib"
+        "${msys2Cairo}/lib"
+        "${msys2Cairomm}/lib"
+        "${msys2Pangomm}/lib"
         "${msys2GettextRuntime}/lib"
         "${msys2Libiconv}/lib"
         "${msys2DrMingw}/lib"
@@ -249,6 +305,12 @@
         "-L${msys2Libusb}/lib"
         "-L${msys2Rubberband}/lib"
         "-L${msys2Aubio}/lib"
+        "-L${msys2Libpng}/lib"
+        "-L${msys2Pango}/lib"
+        "-L${msys2Harfbuzz}/lib"
+        "-L${msys2Cairo}/lib"
+        "-L${msys2Cairomm}/lib"
+        "-L${msys2Pangomm}/lib"
         "-L${msys2GettextRuntime}/lib"
         "-L${msys2Libiconv}/lib"
         "-L${msys2DrMingw}/lib"
@@ -295,6 +357,12 @@
           msys2Libusb
           msys2Rubberband
           msys2Aubio
+          msys2Libpng
+          msys2Pango
+          msys2Harfbuzz
+          msys2Cairo
+          msys2Cairomm
+          msys2Pangomm
           msys2GettextRuntime
           msys2Libiconv
           winPkgs.windows.mingw_w64_pthreads
