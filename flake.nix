@@ -15,6 +15,12 @@
 
       winPkgs = pkgs.pkgsCross.mingwW64;
 
+      baseWinPthreads =
+        if pkgs.lib.hasAttrByPath [ "windows" "pthreads" ] winPkgs then
+          winPkgs.windows.pthreads
+        else
+          winPkgs.windows.mingw_w64_pthreads;
+
       mkMsys2MingwPackage =
         {
           pname,
@@ -330,16 +336,38 @@
         hash = "sha256-rUpLQsdvLVHxKGV57Pm3jTx6/avc6KMzzNzJ4BIjg+A=";
       };
 
-      termcapCompat = pkgs.stdenvNoCC.mkDerivation {
+      termcapCompat = winPkgs.stdenv.mkDerivation {
         pname = "mingw-termcap-compat";
-        version = "1";
-        dontUnpack = true;
+        version = "1.3.1";
+
+        src = pkgs.fetchurl {
+          url = "http://ftpmirror.gnu.org/termcap/termcap-1.3.1.tar.gz";
+          hash = "sha256-kaDiLlOHykRntbyxjt8cUbkwJi/UZtX9o5bdnSZxkQA=";
+        };
+
         dontConfigure = true;
-        dontBuild = true;
+
+        buildPhase = ''
+          runHook preBuild
+
+          ${winPkgs.stdenv.cc.targetPrefix}gcc \
+            -include io.h \
+            -include fcntl.h \
+            -DSTDC_HEADERS \
+            -DHAVE_STRING_H \
+            -c termcap.c tparam.c
+
+          ${winPkgs.stdenv.cc.targetPrefix}ar rcs libtermcap.a termcap.o tparam.o
+
+          runHook postBuild
+        '';
+
         installPhase = ''
           runHook preInstall
+          mkdir -p "$out/include"
           mkdir -p "$out/lib"
-          ln -s ${msys2Ncurses}/lib/libncurses.a "$out/lib/libtermcap.a"
+          install -m 644 termcap.h "$out/include/termcap.h"
+          install -m 644 libtermcap.a "$out/lib/libtermcap.a"
           runHook postInstall
         '';
       };
@@ -458,6 +486,14 @@
         ];
       };
 
+      patchedWinPthreads = baseWinPthreads.overrideAttrs (old: {
+        postPatch = (old.postPatch or "") + ''
+          substituteInPlace mingw-w64-libraries/winpthreads/include/sched.h \
+            --replace-fail 'sched_getscheduler(pid_t pid)' 'sched_getscheduler(_pid_t pid)' \
+            --replace-fail 'sched_setscheduler(pid_t pid, int pol, const struct sched_param *param)' 'sched_setscheduler(_pid_t pid, int pol, const struct sched_param *param)'
+        '';
+      });
+
       windresWrapper = pkgs.writeShellScriptBin "windres" ''
         exec ${winPkgs.stdenv.cc.targetPrefix}windres "$@"
       '';
@@ -550,7 +586,7 @@
         "${msys2GettextRuntime}/lib"
         "${msys2Libiconv}/lib"
         "${msys2DrMingw}/lib"
-        "${winPkgs.windows.mingw_w64_pthreads}/lib"
+        "${patchedWinPthreads}/lib"
       ];
 
       mingwLdFlags = pkgs.lib.concatStringsSep " " [
@@ -598,7 +634,7 @@
         "-L${msys2GettextRuntime}/lib"
         "-L${msys2Libiconv}/lib"
         "-L${msys2DrMingw}/lib"
-        "-L${winPkgs.windows.mingw_w64_pthreads}/lib"
+        "-L${patchedWinPthreads}/lib"
       ];
 
       mingwTailLibs = pkgs.lib.concatStringsSep " " [
@@ -712,7 +748,7 @@
           msys2Jack2
           msys2Libwebsockets
           msys2Portaudio
-          winPkgs.windows.mingw_w64_pthreads
+          patchedWinPthreads
           msys2DrMingw
         ];
 
