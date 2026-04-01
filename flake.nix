@@ -690,10 +690,157 @@
         export PKG_CONFIG_LIBDIR="${mingwPkgConfigPath}"
         exec ${winPkgs.buildPackages.pkg-config}/bin/${winPkgs.stdenv.cc.targetPrefix}pkg-config "$@"
       '';
+
+      ardourVersion = "9.2";
+      ardourSource = pkgs.fetchFromGitHub {
+        owner = "Ardour";
+        repo = "ardour";
+        rev = ardourVersion;
+        fetchSubmodules = true;
+        hash = "sha256-zbEfEuWdhlKtYE0gVB/N0dFrcmNoJqgEMuvQ0wdmRpM=";
+      };
     in
     {
+      packages.${system} = {
+        ardour-windows-build = winPkgs.stdenv.mkDerivation {
+          pname = "ardour-windows";
+          version = "9.2.0";
+
+          src = ardourSource;
+
+          nativeBuildInputs = [
+            pkgs.python3
+            pkgs.gcc
+            pkgs.perl
+            pkgs.gettext
+            winPkgs.stdenv.cc
+            winPkgs.buildPackages.pkg-config
+            windresWrapper
+            pkgConfigWrapper
+          ];
+
+          buildInputs = [
+            mingwLibgnurx
+            winPkgs.zlib
+            winPkgs.zlib.dev
+            winPkgs.openssl.out
+            winPkgs.openssl.dev
+            msys2Boost
+            msys2BoostLibs
+            msys2Glib
+            msys2Libsigcxx
+            msys2Glibmm
+            msys2Libsndfile
+            msys2Curl
+            msys2Libarchive
+            msys2Liblo
+            msys2Taglib
+            msys2VampPluginSdk
+            msys2Fftw
+            msys2Libsamplerate
+            msys2Libusb
+            msys2Rubberband
+            msys2Aubio
+            msys2Libpng
+            msys2Pango
+            msys2Harfbuzz
+            msys2Cairo
+            msys2Cairomm
+            msys2Pangomm
+            msys2Lv2
+            msys2Serd
+            msys2Sord
+            msys2Sratom
+            msys2Lilv
+            msys2Libogg
+            msys2Flac
+            msys2Libvorbis
+            msys2Fontconfig
+            msys2Freetype
+            msys2Cppunit
+            msys2Readline
+            msys2Ncurses
+            termcapCompat
+            msys2Libxml2
+            msys2GettextRuntime
+            msys2Libiconv
+            msys2Jack2
+            msys2Libwebsockets
+            msys2Portaudio
+            patchedWinPthreads
+            msys2DrMingw
+          ];
+
+          preConfigure = ''
+                        # Generate revision.cc if it doesn't exist (GitHub archive doesn't include it)
+                        if [ ! -f libs/ardour/revision.cc ]; then
+                          mkdir -p libs/ardour
+                          cat > libs/ardour/revision.cc << 'EOF'
+            #include "ardour/revision.h"
+            namespace ARDOUR { const char* revision = "9.2"; const char* date = "$(date -R)"; }
+            EOF
+                        fi
+
+                        export CC=${ccWrapper}/bin/${winPkgs.stdenv.cc.targetPrefix}gcc-msys2
+                        export CXX=${cxxWrapper}/bin/${winPkgs.stdenv.cc.targetPrefix}g++-msys2
+                        export CPP=${winPkgs.stdenv.cc.targetPrefix}cpp
+                        export AR=${winPkgs.stdenv.cc.targetPrefix}ar
+                        export AS=${winPkgs.stdenv.cc.targetPrefix}as
+                        export RANLIB=${winPkgs.stdenv.cc.targetPrefix}ranlib
+                        export STRIP=${winPkgs.stdenv.cc.targetPrefix}strip
+                        export WINDRES=${windresWrapper}/bin/windres
+                        export PKG_CONFIG=${pkgConfigWrapper}/bin/pkg-config
+                        export PKG_CONFIG_PATH=${mingwPkgConfigPath}''${PKG_CONFIG_PATH:+:''${PKG_CONFIG_PATH}}
+                        export PKG_CONFIG_LIBDIR=${mingwPkgConfigPath}
+                        export CPPFLAGS="-I${mingwLibgnurx}/include -I${winPkgs.zlib.dev}/include -I${winPkgs.openssl.dev}/include -I${msys2Freetype}/include/freetype2 -I${msys2Fontconfig}/include -I${msys2Serd}/include -I${msys2Sord}/include -I${msys2Sratom}/include -I${msys2Lilv}/include ''${CPPFLAGS:+$CPPFLAGS}"
+                        export CFLAGS="$CPPFLAGS ''${CFLAGS:+$CFLAGS}"
+                        export CXXFLAGS="$CPPFLAGS ''${CXXFLAGS:+$CXXFLAGS}"
+                        export LIBRARY_PATH=${mingwLibraryPath}''${LIBRARY_PATH:+:''${LIBRARY_PATH}}
+                        export NIX_LDFLAGS="${mingwLdFlags} ''${NIX_LDFLAGS:+$NIX_LDFLAGS}"
+          '';
+
+          dontAddPrefix = true;
+
+          prePatch = ''
+            patchShebangs waf
+          '';
+
+          configurePhase = ''
+            runHook preConfigure
+            python ./waf configure \
+              --dist-target=mingw \
+              --ptformat \
+              --with-backends=jack,portaudio,dummy \
+              --optimize \
+              --cxx17
+            runHook postConfigure
+          '';
+
+          buildPhase = ''
+            runHook preBuild
+            python ./waf build
+            python ./waf i18n
+            runHook postBuild
+          '';
+
+          installPhase = ''
+            runHook preInstall
+            mkdir -p $out
+            cp -r build $out/
+            runHook postInstall
+          '';
+
+          enableParallelBuild = true;
+
+          dontFixup = true;
+          dontStrip = true;
+        };
+      };
+
       devShells.${system}.default = pkgs.mkShell {
         nativeBuildInputs = [
+          pkgs.perl
+          pkgs.gettext
           winPkgs.stdenv.cc
           winPkgs.buildPackages.pkg-config
           windresWrapper
@@ -755,6 +902,7 @@
         shellHook = ''
           export CC=${ccWrapper}/bin/${winPkgs.stdenv.cc.targetPrefix}gcc-msys2
           export CXX=${cxxWrapper}/bin/${winPkgs.stdenv.cc.targetPrefix}g++-msys2
+          export CPP=${winPkgs.stdenv.cc.targetPrefix}cpp
           export AR=${winPkgs.stdenv.cc.targetPrefix}ar
           export AS=${winPkgs.stdenv.cc.targetPrefix}as
           export RANLIB=${winPkgs.stdenv.cc.targetPrefix}ranlib
