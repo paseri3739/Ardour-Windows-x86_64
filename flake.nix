@@ -1172,6 +1172,11 @@
                           else
                             cp -r ${ardourSource}/share/* "$runtimeRoot/share/$bundleName/"
                           fi
+                          # Practical parity: stage gettext-runtime catalogs even when waf install prefix lacks share/locale.
+                          if [ -d "${msys2GettextRuntime}/share/locale" ]; then
+                            mkdir -p "$runtimeRoot/share/locale"
+                            cp -r "${msys2GettextRuntime}/share/locale"/. "$runtimeRoot/share/locale/"
+                          fi
                           if [ -n "$prefixEtcBundle" ] && [ -d "$prefixEtcBundle" ]; then
                             cp -r "$prefixEtcBundle"/* "$runtimeRoot/share/$bundleName/"
                           fi
