@@ -1038,6 +1038,8 @@
               runHook preInstall
               mkdir -p $out
               cp -r build $out/
+              # Stage an install tree so runtime bundling can mirror package.sh PREFIX copies.
+              python ./waf install --destdir="$out/prefix"
               runHook postInstall
             '';
 
@@ -1067,9 +1069,20 @@
                           runtimeRoot="$out/runtime"
                           bundleLibDir="$runtimeRoot/lib/$bundleName"
                           buildRoot="${ardourWindowsBase}/build"
+                          prefixStore="${ardourWindowsBase}/prefix"
+                          prefixShareBundle="$(find "$prefixStore" -type d -path "*/share/$bundleName" | head -n1 || true)"
+                          prefixEtcBundle="$(find "$prefixStore" -type d -path "*/etc/$bundleName" | head -n1 || true)"
+                          prefixBinDir="$(find "$prefixStore" -type d -path "*/bin" | head -n1 || true)"
+                          prefixRoot=""
+                          if [ -n "$prefixShareBundle" ]; then
+                            prefixRoot="$(dirname "$(dirname "$prefixShareBundle")")"
+                          elif [ -n "$prefixBinDir" ]; then
+                            prefixRoot="$(dirname "$prefixBinDir")"
+                          fi
 
                           mkdir -p "$runtimeRoot/bin"
                           mkdir -p "$runtimeRoot/share"
+                          mkdir -p "$runtimeRoot/lib/gtk-2.0/engines"
                           mkdir -p "$bundleLibDir/surfaces"
                           mkdir -p "$bundleLibDir/backends"
                           mkdir -p "$bundleLibDir/panners"
@@ -1078,6 +1091,10 @@
 
                           # Copy main executables and Ardour-built DLLs to the executable directory.
                           cp "$buildRoot"/gtk2_ardour/ardour-*.exe "$runtimeRoot/bin/"
+                          latest_ardour_exe="$(ls -t "$buildRoot"/gtk2_ardour/ardour-*.exe 2>/dev/null | head -n1 || true)"
+                          if [ -n "$latest_ardour_exe" ] && [ -f "$latest_ardour_exe" ]; then
+                            cp "$latest_ardour_exe" "$runtimeRoot/bin/Ardour.exe"
+                          fi
                           cp "$buildRoot"/libs/gtkmm2ext/gtkmm2ext-*.dll "$runtimeRoot/bin/"
                           cp "$buildRoot"/libs/midi++2/midipp-*.dll "$runtimeRoot/bin/"
                           cp "$buildRoot"/libs/evoral/evoral-*.dll "$runtimeRoot/bin/"
@@ -1104,28 +1121,77 @@
                           cp "$buildRoot"/libs/tk/ztkmm/ztkmm-*.dll "$runtimeRoot/bin/" || true
                           cp "$buildRoot"/libs/tk/ydk-pixbuf/ydk-pixbuf-*.dll "$runtimeRoot/bin/" || true
                           cp "$buildRoot"/libs/tk/suil/suil-*.dll "$runtimeRoot/bin/" || true
+                          cp "$buildRoot"/libs/clearlooks-newer/clearlooks.dll "$runtimeRoot/lib/gtk-2.0/engines/libclearlooks.la" || true
 
                           # Copy module/plugin DLLs to the expected bundle subdirectories.
                           find "$buildRoot"/libs/surfaces -iname "*.dll" -exec cp {} "$bundleLibDir/surfaces/" \;
                           find "$buildRoot"/libs/backends -iname "*.dll" -exec cp {} "$bundleLibDir/backends/" \;
                           find "$buildRoot"/libs/panners -iname "*.dll" -exec cp {} "$bundleLibDir/panners/" \;
                           cp -r "$buildRoot"/libs/LV2 "$bundleLibDir/" || true
+                          chmod -R u+w "$bundleLibDir/LV2" 2>/dev/null || true
                           cp "$buildRoot"/libs/vamp-plugins/*ardourvampplugins*.dll "$bundleLibDir/vamp/libardourvampplugins.dll"
                           cp "$buildRoot"/libs/vamp-pyin/*ardourvamppyin*.dll "$bundleLibDir/vamp/libardourvamppyin.dll" || true
                           if [ -d "$buildRoot"/libs/tk/suil ]; then
                             cp "$buildRoot"/libs/tk/suil/suil_win_in_gtk2.dll "$bundleLibDir/suil/" || true
                           fi
 
-                          # Deploy share assets so runtime lookups can resolve fonts/scripts/templates/media.
+                          # Deploy share assets in the same order as package.sh: share/<bundle>, share/locale, etc/<bundle> overlay.
                           mkdir -p "$runtimeRoot/share/$bundleName"
-                          cp -r ${ardourSource}/share/* "$runtimeRoot/share/$bundleName/"
+                          if [ -n "$prefixShareBundle" ] && [ -d "$prefixShareBundle" ]; then
+                            cp -r "$prefixShareBundle" "$runtimeRoot/share/"
+                            prefixShareRoot="$(dirname "$prefixShareBundle")"
+                            if [ -d "$prefixShareRoot/locale" ]; then
+                              cp -r "$prefixShareRoot/locale" "$runtimeRoot/share/"
+                            fi
+                          else
+                            cp -r ${ardourSource}/share/* "$runtimeRoot/share/$bundleName/"
+                          fi
+                          if [ -n "$prefixEtcBundle" ] && [ -d "$prefixEtcBundle" ]; then
+                            cp -r "$prefixEtcBundle"/* "$runtimeRoot/share/$bundleName/"
+                          fi
+                          chmod -R u+w "$runtimeRoot/share/$bundleName" 2>/dev/null || true
                           cp -r ${ardourSource}/gtk2_ardour/resources "$runtimeRoot/share/$bundleName/" || true
-                          cp -r ${ardourSource}/gtk2_ardour/icons "$runtimeRoot/share/$bundleName/" || true
+                          mkdir -p "$runtimeRoot/share/$bundleName/icons"
+                          cp -r ${ardourSource}/gtk2_ardour/icons/cursor_square/* "$runtimeRoot/share/$bundleName/icons/" || true
                           cp ${ardourSource}/gtk2_ardour/ArdourMono.ttf "$runtimeRoot/share/$bundleName/" || true
                           cp ${ardourSource}/gtk2_ardour/ArdourSans.ttf "$runtimeRoot/share/$bundleName/" || true
+                          cp ${ardourSource}/COPYING "$runtimeRoot/share/" || true
+                          cp ${ardourSource}/gtk2_ardour/icons/Ardour.ico "$runtimeRoot/share/" || true
+                          cp ${ardourSource}/gtk2_ardour/icons/ArdourBug.ico "$runtimeRoot/share/" || true
                           cp "$buildRoot"/gtk2_ardour/ardour.keys "$runtimeRoot/share/$bundleName/" || true
+                          cp "$buildRoot"/gtk2_ardour/ardour.menus "$runtimeRoot/share/$bundleName/" || true
+                          cp "$buildRoot"/gtk2_ardour/clearlooks.ardoursans.rc "$runtimeRoot/share/$bundleName/" || true
                           cp "$buildRoot"/gtk2_ardour/clearlooks.rc "$runtimeRoot/share/$bundleName/" || true
                           cp "$buildRoot"/gtk2_ardour/default_ui_config "$runtimeRoot/share/$bundleName/" || true
+                          cp ${ardourSource}/system_config "$runtimeRoot/share/$bundleName/" || true
+
+                          # Bring in prefix bin/lib payloads before generic dependency scanning.
+                          if [ -n "$prefixRoot" ] && [ -d "$prefixRoot" ]; then
+                            if [ -d "$prefixRoot/bin" ]; then
+                              cp -n "$prefixRoot/bin"/*.dll "$runtimeRoot/bin/" 2>/dev/null || true
+                              cp -n "$prefixRoot/bin"/*.yes "$runtimeRoot/bin/" 2>/dev/null || true
+                              if [ -f "$prefixRoot/bin/libportaudio-2.xp" ]; then
+                                cp -n "$prefixRoot/bin/libportaudio-2.xp" "$runtimeRoot/bin/" || true
+                              elif [ -f "$prefixRoot/bin/libportaudio-2.dll" ]; then
+                                cp -n "$prefixRoot/bin/libportaudio-2.dll" "$runtimeRoot/bin/libportaudio-2.xp" || true
+                              fi
+                            fi
+                            if [ -d "$prefixRoot/lib" ]; then
+                              cp -n "$prefixRoot/lib"/*.dll "$runtimeRoot/bin/" 2>/dev/null || true
+                            fi
+                          fi
+
+                          # Copy lv2 ttl metadata from dependency stack (PREFIX/lib/lv2 -> lib/<bundle>/LV2).
+                          for libdir in $(echo "${mingwLibraryPath}" | tr ':' ' '); do
+                            if [ -d "$libdir/lv2" ]; then
+                              for lv2bundle in "$libdir"/lv2/*.lv2; do
+                                [ -d "$lv2bundle" ] || continue
+                                bn="$(basename "$lv2bundle")"
+                                mkdir -p "$bundleLibDir/LV2/$bn"
+                                cp -n "$lv2bundle"/*.ttl "$bundleLibDir/LV2/$bn/" 2>/dev/null || true
+                              done
+                            fi
+                          done
 
                           # Copy dependency DLLs from all configured MinGW runtime/library paths.
                           for libdir in $(echo "${mingwLibraryPath}" | tr ':' ' '); do
@@ -1135,8 +1201,18 @@
                             bindir="''${libdir%/lib}/bin"
                             if [ -d "$bindir" ]; then
                               cp -n "$bindir"/*.dll "$runtimeRoot/bin/" 2>/dev/null || true
+                              cp -n "$bindir"/*.yes "$runtimeRoot/bin/" 2>/dev/null || true
+                              if [ -f "$bindir/libportaudio-2.xp" ]; then
+                                cp -n "$bindir/libportaudio-2.xp" "$runtimeRoot/bin/" || true
+                              fi
                             fi
                           done
+                          if [ ! -f "$runtimeRoot/bin/libportaudio-2.xp" ] && [ -f "$runtimeRoot/bin/libportaudio-2.dll" ]; then
+                            cp -n "$runtimeRoot/bin/libportaudio-2.dll" "$runtimeRoot/bin/libportaudio-2.xp" || true
+                          fi
+                          if [ ! -f "$runtimeRoot/bin/libportaudio-2.xp" ] && [ -f "$runtimeRoot/bin/libportaudio.dll" ]; then
+                            cp -n "$runtimeRoot/bin/libportaudio.dll" "$runtimeRoot/bin/libportaudio-2.xp" || true
+                          fi
 
                           # Runtime-only dependencies are added in this phase to avoid polluting compile inputs.
                           for src in ${
@@ -1157,6 +1233,7 @@
                           # Keep behavior aligned with x-win packaging script.
                           rm -f "$runtimeRoot/bin"/libjack*.dll
                           rm -f "$runtimeRoot/bin"/dbghelp*.dll "$runtimeRoot/bin"/dbgcore*.dll
+                          find "$runtimeRoot" -type f -name "*.dll.a" -delete 2>/dev/null || true
 
                           # Convenience launcher for Wine that sets ARDOUR_DLL_PATH for bundle runtime.
                           mkdir -p "$out/bin"
@@ -1165,7 +1242,10 @@
               set -euo pipefail
               root="\$(cd "\$(dirname "\$0")/.." && pwd)"
               dll_dir_unix="\$root/runtime/lib/$bundleName"
-              exe="\$(ls -1 "\$root"/runtime/bin/ardour-*.exe 2>/dev/null | head -n1)"
+              exe="\$root/runtime/bin/Ardour.exe"
+              if [ ! -f "\$exe" ]; then
+                exe="\$(ls -1 "\$root"/runtime/bin/ardour-*.exe 2>/dev/null | head -n1)"
+              fi
 
               if [ -z "\$exe" ] || [ ! -f "\$exe" ]; then
                 echo "Executable not found under \$root/runtime/bin" >&2
@@ -1175,7 +1255,9 @@
               if command -v winepath >/dev/null 2>&1; then
                 dll_dir_win="\$(winepath -w "\$dll_dir_unix")"
                 bin_dir_win="\$(winepath -w "\$root/runtime/bin")"
+                data_dir_win="\$(winepath -w "\$root/runtime/share/$bundleName")"
                 export ARDOUR_DLL_PATH="\$dll_dir_win"
+                export ARDOUR_DATA_PATH="\$data_dir_win"
                 export WINEPATH="\$bin_dir_win''${WINEPATH:+;\$WINEPATH}"
               else
                 echo "winepath not found; ARDOUR_DLL_PATH/WINEPATH were not translated." >&2
