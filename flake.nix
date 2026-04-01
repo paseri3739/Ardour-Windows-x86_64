@@ -391,6 +391,185 @@
         sha256 = "sha256-IeM00JEfJd510+GOBpdki87PqWWCVtYAytCCfXGcLzU=";
       };
 
+      msys2ZlibRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-zlib";
+        version = "1.3.2-2";
+        sha256 = "9e75842a070ba648e986e12424e1c92c9d7d77200e85f6a34eeb600819f2e694";
+        fixPkgConfig = true;
+      };
+
+      msys2Pcre2Runtime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-pcre2";
+        version = "10.47-1";
+        sha256 = "7c9e3cd47af02a096c0c1810d1021f63c5fb1d22dbec91fa019d8b37eda00d98";
+        fixPkgConfig = true;
+      };
+
+      msys2LibffiRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libffi";
+        version = "3.5.2-1";
+        sha256 = "138e44d2752bc8072070c05f1c1387dc8883a0f7f9e38f0bcb272e16264722c4";
+        fixPkgConfig = true;
+      };
+
+      msys2ZixRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-zix";
+        version = "0.8.0-1";
+        sha256 = "9c26df48de7229b5837ce9de275a76670c54a531d637a63bbaef975bafc95c34";
+        fixPkgConfig = true;
+      };
+
+      msys2BrotliRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-brotli";
+        version = "1.2.0-1";
+        sha256 = "f5f2f7e723a08378241d15f0537386950c1a48e2d82bc47bedd632bd61852aba";
+        fixPkgConfig = true;
+      };
+
+      msys2Bzip2Runtime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-bzip2";
+        version = "1.0.8-3";
+        sha256 = "653ec97c18dc139ca94e2b4b9d161a9b4d9e77ceb18dfb064eb95ef2a71171b6";
+        fixPkgConfig = true;
+      };
+
+      msys2ExpatRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-expat";
+        version = "2.7.5-1";
+        sha256 = "ffa76e6ef6a2db721b5266da4e862d53beb6ba69ecde71f2954109cd7db5609b";
+        fixPkgConfig = true;
+      };
+
+      msys2Graphite2Runtime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-graphite2";
+        version = "1.3.14-3";
+        sha256 = "7a34b730ebdb7b4be8df91c2ddc9ff4965bd3f8359bb248cb774b5d099fdf5b1";
+        fixPkgConfig = true;
+      };
+
+      msys2FribidiRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-fribidi";
+        version = "1.0.16-1";
+        sha256 = "82d4f9e431082d2ac2fa7b9eddd73aa0c073bf8ae66b7d137195797ec543dffa";
+        fixPkgConfig = true;
+      };
+
+      msys2LibdatrieRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libdatrie";
+        version = "0.2.14-1";
+        sha256 = "fbbf30e9a911c1139ba5c38c5ae008309dd912f6c6b1e05f4310ec698e1b1339";
+        fixPkgConfig = true;
+      };
+
+      msys2LibthaiRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libthai";
+        version = "0.1.30-1";
+        sha256 = "e8cfad91934e24e9a88221b66f2d1c5a310c952ef86631107a632d3ff1738211";
+        fixPkgConfig = true;
+      };
+
+      msys2McfgthreadLibsRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-mcfgthread-libs";
+        version = "2.3.2-1";
+        sha256 = "96bdd9c0b4ce47d00be3857a06639a97b00665a231c74a5262899852b8f9078f";
+      };
+
+      msys2Libb2Runtime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libb2";
+        version = "0.98.1-3";
+        sha256 = "3c898f08c5f19e25dc6d7e39aa36b6f323141f0e62c5c50f089cd3f89711854c";
+      };
+
+      msys2OpenSSLRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-openssl";
+        version = "3.6.1-3";
+        sha256 = "2788cc26b89a5c73eb73704263aa81acb6b24c73bf8424a688eedd6714902e5c";
+      };
+
+      msys2Libidn2Runtime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libidn2";
+        version = "2.3.8-4";
+        sha256 = "f98a157446f9ac35465022e329cdaf6169b0c9fa19837e9d80aff9d4e5109013";
+      };
+
+      msys2LibunistringRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libunistring";
+        version = "1.3-1";
+        sha256 = "25291dc1e1ded3427b6d047ca33fd4ede0b37c5703810ba9f57c931e0276b151";
+      };
+
+      msys2Lz4Runtime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-lz4";
+        version = "1.10.0-1";
+        sha256 = "a4c5a3bcd26111554c87591275b8a681bfa4473d1607647e24c22ef6213c055c";
+      };
+
+      msys2XzRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-xz";
+        version = "5.8.2-1";
+        sha256 = "139d6cb7d176a4525c591f5efc909f1f33f6ae01a0f63aaa44888954cd166e9b";
+      };
+
+      msys2LameRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-lame";
+        version = "3.100-3";
+        sha256 = "083e74a93c2fa764c26d73b5a21e2f5055242bc13997d8dbe6a6c2b4577d6b03";
+      };
+
+      msys2Mpg123Runtime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-mpg123";
+        version = "1.33.4-1";
+        sha256 = "cec31c616c12dd4dbfefa58c3038b75f043dce5a115f746c174cd59706049eaa";
+      };
+
+      msys2Nghttp2Runtime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-nghttp2";
+        version = "1.68.1-1";
+        sha256 = "6f230e215d222b5866d8c311db0dc9723750c8ca6d67e11e12ac419d0be8a276";
+      };
+
+      msys2Nghttp3Runtime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-nghttp3";
+        version = "1.15.0-1";
+        sha256 = "fc4cd97728eb66beda500f51d52f502353c50137478c60a05b3f6fef344f18b6";
+      };
+
+      msys2Ngtcp2Runtime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-ngtcp2";
+        version = "1.22.0-1";
+        sha256 = "48457afca5f2b47a219d85ba7219e49aefad33ec201dc3c20e74349dc00be751";
+      };
+
+      msys2OpusRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-opus";
+        version = "1.6.1-1";
+        sha256 = "8ff5a273c811e64c5af4c886b6f5d7a8aefca30ef2c7942a7e0a7e62c49e1c25";
+      };
+
+      msys2PixmanRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-pixman";
+        version = "0.46.4-1";
+        sha256 = "236af6cb0ae89c6ef57b2a3199df72e6688d709238f640dd7fe66fdb50e7dfbd";
+      };
+
+      msys2LibpslRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libpsl";
+        version = "0.21.5-3";
+        sha256 = "2a86f7ce3cd3fabff7eb8e5c0d3eb1134808881a44c3838e1b518b75cb402e35";
+      };
+
+      msys2Libssh2Runtime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-libssh2";
+        version = "1.11.1-2";
+        sha256 = "83d0b99f79e930b30eb642382662686b696d64ceb927c2606debd79cb6ff670a";
+      };
+
+      msys2ZstdRuntime = mkMsys2MingwPackage {
+        pname = "mingw-w64-x86_64-zstd";
+        version = "1.5.7-1";
+        sha256 = "589c6e808b0bf34872d9ed6f5393a6df389d2ae6e3d1fdb18b8bccfca701f851";
+      };
+
       msys2DrMingw = mkMsys2MingwPackage {
         pname = "mingw-w64-x86_64-drmingw";
         version = "0.9.11-2";
@@ -691,6 +870,37 @@
         exec ${winPkgs.buildPackages.pkg-config}/bin/${winPkgs.stdenv.cc.targetPrefix}pkg-config "$@"
       '';
 
+      runtimeOnlyWinDllDeps = [
+        msys2Pcre2Runtime
+        msys2LibffiRuntime
+        msys2ZixRuntime
+        msys2ZlibRuntime
+        msys2BrotliRuntime
+        msys2Bzip2Runtime
+        msys2ExpatRuntime
+        msys2Graphite2Runtime
+        msys2FribidiRuntime
+        msys2LibdatrieRuntime
+        msys2LibthaiRuntime
+        msys2McfgthreadLibsRuntime
+        msys2Libb2Runtime
+        msys2OpenSSLRuntime
+        msys2Libidn2Runtime
+        msys2LibunistringRuntime
+        msys2Lz4Runtime
+        msys2XzRuntime
+        msys2LameRuntime
+        msys2Mpg123Runtime
+        msys2Nghttp2Runtime
+        msys2Nghttp3Runtime
+        msys2Ngtcp2Runtime
+        msys2OpusRuntime
+        msys2PixmanRuntime
+        msys2LibpslRuntime
+        msys2Libssh2Runtime
+        msys2ZstdRuntime
+      ];
+
       ardourVersion = "9.2";
       ardourSource = pkgs.fetchFromGitHub {
         owner = "Ardour";
@@ -701,141 +911,284 @@
       };
     in
     {
-      packages.${system} = {
-        ardour-windows-build = winPkgs.stdenv.mkDerivation {
-          pname = "ardour-windows";
-          version = "9.2.0";
+      packages.${system} =
+        let
+          ardourWindowsBase = winPkgs.stdenv.mkDerivation {
+            pname = "ardour-windows";
+            version = "9.2.0";
 
-          src = ardourSource;
+            src = ardourSource;
 
-          nativeBuildInputs = [
-            pkgs.python3
-            pkgs.gcc
-            pkgs.perl
-            pkgs.gettext
-            winPkgs.stdenv.cc
-            winPkgs.buildPackages.pkg-config
-            windresWrapper
-            pkgConfigWrapper
-          ];
+            nativeBuildInputs = [
+              pkgs.python3
+              pkgs.gcc
+              pkgs.perl
+              pkgs.gettext
+              winPkgs.stdenv.cc
+              winPkgs.buildPackages.pkg-config
+              windresWrapper
+              pkgConfigWrapper
+            ];
 
-          buildInputs = [
-            mingwLibgnurx
-            winPkgs.zlib
-            winPkgs.zlib.dev
-            winPkgs.openssl.out
-            winPkgs.openssl.dev
-            msys2Boost
-            msys2BoostLibs
-            msys2Glib
-            msys2Libsigcxx
-            msys2Glibmm
-            msys2Libsndfile
-            msys2Curl
-            msys2Libarchive
-            msys2Liblo
-            msys2Taglib
-            msys2VampPluginSdk
-            msys2Fftw
-            msys2Libsamplerate
-            msys2Libusb
-            msys2Rubberband
-            msys2Aubio
-            msys2Libpng
-            msys2Pango
-            msys2Harfbuzz
-            msys2Cairo
-            msys2Cairomm
-            msys2Pangomm
-            msys2Lv2
-            msys2Serd
-            msys2Sord
-            msys2Sratom
-            msys2Lilv
-            msys2Libogg
-            msys2Flac
-            msys2Libvorbis
-            msys2Fontconfig
-            msys2Freetype
-            msys2Cppunit
-            msys2Readline
-            msys2Ncurses
-            termcapCompat
-            msys2Libxml2
-            msys2GettextRuntime
-            msys2Libiconv
-            msys2Jack2
-            msys2Libwebsockets
-            msys2Portaudio
-            patchedWinPthreads
-            msys2DrMingw
-          ];
+            buildInputs = [
+              mingwLibgnurx
+              winPkgs.zlib
+              winPkgs.zlib.dev
+              winPkgs.openssl.out
+              winPkgs.openssl.dev
+              msys2Boost
+              msys2BoostLibs
+              msys2Glib
+              msys2Libsigcxx
+              msys2Glibmm
+              msys2Libsndfile
+              msys2Curl
+              msys2Libarchive
+              msys2Liblo
+              msys2Taglib
+              msys2VampPluginSdk
+              msys2Fftw
+              msys2Libsamplerate
+              msys2Libusb
+              msys2Rubberband
+              msys2Aubio
+              msys2Libpng
+              msys2Pango
+              msys2Harfbuzz
+              msys2Cairo
+              msys2Cairomm
+              msys2Pangomm
+              msys2Lv2
+              msys2Serd
+              msys2Sord
+              msys2Sratom
+              msys2Lilv
+              msys2Libogg
+              msys2Flac
+              msys2Libvorbis
+              msys2Fontconfig
+              msys2Freetype
+              msys2Cppunit
+              msys2Readline
+              msys2Ncurses
+              termcapCompat
+              msys2Libxml2
+              msys2GettextRuntime
+              msys2Libiconv
+              msys2Jack2
+              msys2Libwebsockets
+              msys2Portaudio
+              patchedWinPthreads
+              msys2DrMingw
+            ];
 
-          preConfigure = ''
-                        # Generate revision.cc if it doesn't exist (GitHub archive doesn't include it)
-                        if [ ! -f libs/ardour/revision.cc ]; then
-                          mkdir -p libs/ardour
-                          cat > libs/ardour/revision.cc << 'EOF'
-            #include "ardour/revision.h"
-            namespace ARDOUR { const char* revision = "9.2"; const char* date = "$(date -R)"; }
-            EOF
-                        fi
+            preConfigure = ''
+                          # Generate revision.cc if it doesn't exist (GitHub archive doesn't include it)
+                          if [ ! -f libs/ardour/revision.cc ]; then
+                            mkdir -p libs/ardour
+                            cat > libs/ardour/revision.cc << 'EOF'
+              #include "ardour/revision.h"
+              namespace ARDOUR { const char* revision = "9.2"; const char* date = "$(date -R)"; }
+              EOF
+                          fi
 
-                        export CC=${ccWrapper}/bin/${winPkgs.stdenv.cc.targetPrefix}gcc-msys2
-                        export CXX=${cxxWrapper}/bin/${winPkgs.stdenv.cc.targetPrefix}g++-msys2
-                        export CPP=${winPkgs.stdenv.cc.targetPrefix}cpp
-                        export AR=${winPkgs.stdenv.cc.targetPrefix}ar
-                        export AS=${winPkgs.stdenv.cc.targetPrefix}as
-                        export RANLIB=${winPkgs.stdenv.cc.targetPrefix}ranlib
-                        export STRIP=${winPkgs.stdenv.cc.targetPrefix}strip
-                        export WINDRES=${windresWrapper}/bin/windres
-                        export PKG_CONFIG=${pkgConfigWrapper}/bin/pkg-config
-                        export PKG_CONFIG_PATH=${mingwPkgConfigPath}''${PKG_CONFIG_PATH:+:''${PKG_CONFIG_PATH}}
-                        export PKG_CONFIG_LIBDIR=${mingwPkgConfigPath}
-                        export CPPFLAGS="-I${mingwLibgnurx}/include -I${winPkgs.zlib.dev}/include -I${winPkgs.openssl.dev}/include -I${msys2Freetype}/include/freetype2 -I${msys2Fontconfig}/include -I${msys2Serd}/include -I${msys2Sord}/include -I${msys2Sratom}/include -I${msys2Lilv}/include ''${CPPFLAGS:+$CPPFLAGS}"
-                        export CFLAGS="$CPPFLAGS ''${CFLAGS:+$CFLAGS}"
-                        export CXXFLAGS="$CPPFLAGS ''${CXXFLAGS:+$CXXFLAGS}"
-                        export LIBRARY_PATH=${mingwLibraryPath}''${LIBRARY_PATH:+:''${LIBRARY_PATH}}
-                        export NIX_LDFLAGS="${mingwLdFlags} ''${NIX_LDFLAGS:+$NIX_LDFLAGS}"
-          '';
+                          export CC=${ccWrapper}/bin/${winPkgs.stdenv.cc.targetPrefix}gcc-msys2
+                          export CXX=${cxxWrapper}/bin/${winPkgs.stdenv.cc.targetPrefix}g++-msys2
+                          export CPP=${winPkgs.stdenv.cc.targetPrefix}cpp
+                          export AR=${winPkgs.stdenv.cc.targetPrefix}ar
+                          export AS=${winPkgs.stdenv.cc.targetPrefix}as
+                          export RANLIB=${winPkgs.stdenv.cc.targetPrefix}ranlib
+                          export STRIP=${winPkgs.stdenv.cc.targetPrefix}strip
+                          export WINDRES=${windresWrapper}/bin/windres
+                          export PKG_CONFIG=${pkgConfigWrapper}/bin/pkg-config
+                          export PKG_CONFIG_PATH=${mingwPkgConfigPath}''${PKG_CONFIG_PATH:+:''${PKG_CONFIG_PATH}}
+                          export PKG_CONFIG_LIBDIR=${mingwPkgConfigPath}
+                          export CPPFLAGS="-I${mingwLibgnurx}/include -I${winPkgs.zlib.dev}/include -I${winPkgs.openssl.dev}/include -I${msys2Freetype}/include/freetype2 -I${msys2Fontconfig}/include -I${msys2Serd}/include -I${msys2Sord}/include -I${msys2Sratom}/include -I${msys2Lilv}/include ''${CPPFLAGS:+$CPPFLAGS}"
+                          export CFLAGS="$CPPFLAGS ''${CFLAGS:+$CFLAGS}"
+                          export CXXFLAGS="$CPPFLAGS ''${CXXFLAGS:+$CXXFLAGS}"
+                          export LIBRARY_PATH=${mingwLibraryPath}''${LIBRARY_PATH:+:''${LIBRARY_PATH}}
+                          export NIX_LDFLAGS="${mingwLdFlags} ''${NIX_LDFLAGS:+$NIX_LDFLAGS}"
+            '';
 
-          dontAddPrefix = true;
+            dontAddPrefix = true;
 
-          prePatch = ''
-            patchShebangs waf
-          '';
+            prePatch = ''
+              patchShebangs waf
+            '';
 
-          configurePhase = ''
-            runHook preConfigure
-            python ./waf configure \
-              --dist-target=mingw \
-              --ptformat \
-              --with-backends=jack,portaudio,dummy \
-              --optimize \
-              --cxx17
-            runHook postConfigure
-          '';
+            configurePhase = ''
+              runHook preConfigure
+              python ./waf configure \
+                --dist-target=mingw \
+                --ptformat \
+                --with-backends=jack,portaudio,dummy \
+                --optimize \
+                --cxx17
+              runHook postConfigure
+            '';
 
-          buildPhase = ''
-            runHook preBuild
-            python ./waf build
-            python ./waf i18n
-            runHook postBuild
-          '';
+            buildPhase = ''
+              runHook preBuild
+              python ./waf build
+              python ./waf i18n
+              runHook postBuild
+            '';
 
-          installPhase = ''
-            runHook preInstall
-            mkdir -p $out
-            cp -r build $out/
-            runHook postInstall
-          '';
+            installPhase = ''
+              runHook preInstall
+              mkdir -p $out
+              cp -r build $out/
+              runHook postInstall
+            '';
 
-          enableParallelBuild = true;
+            enableParallelBuild = true;
 
-          dontFixup = true;
-          dontStrip = true;
+            dontFixup = true;
+            dontStrip = true;
+          };
+        in
+        {
+          ardour-windows-base = ardourWindowsBase;
+
+          ardour-windows-build = pkgs.stdenvNoCC.mkDerivation {
+            pname = "ardour-windows-runtime";
+            version = "9.2.0";
+
+            dontUnpack = true;
+            buildInputs = runtimeOnlyWinDllDeps;
+
+            installPhase = ''
+                          runHook preInstall
+                          mkdir -p $out
+                          cp -r ${ardourWindowsBase}/build $out/
+
+                          major="''${version%%.*}"
+                          bundleName="ardour$major"
+                          runtimeRoot="$out/runtime"
+                          bundleLibDir="$runtimeRoot/lib/$bundleName"
+                          buildRoot="${ardourWindowsBase}/build"
+
+                          mkdir -p "$runtimeRoot/bin"
+                          mkdir -p "$runtimeRoot/share"
+                          mkdir -p "$bundleLibDir/surfaces"
+                          mkdir -p "$bundleLibDir/backends"
+                          mkdir -p "$bundleLibDir/panners"
+                          mkdir -p "$bundleLibDir/vamp"
+                          mkdir -p "$bundleLibDir/suil"
+
+                          # Copy main executables and Ardour-built DLLs to the executable directory.
+                          cp "$buildRoot"/gtk2_ardour/ardour-*.exe "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/gtkmm2ext/gtkmm2ext-*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/midi++2/midipp-*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/evoral/evoral-*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/ardour/ardour-*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/temporal/temporal-*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/aaf/aaf-*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/canvas/canvas-*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/widgets/widgets-*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/waveview/waveview-*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/pbd/pbd-*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/ptformat/ptformat-*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/audiographer/audiographer-*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/ctrl-interface/midi_surface/ardour*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/ctrl-interface/control_protocol/ardour*.dll "$runtimeRoot/bin/"
+                          cp "$buildRoot"/libs/fst/ardour-vst-scanner.exe "$runtimeRoot/bin/" || true
+                          cp "$buildRoot"/libs/fst/ardour-vst3-scanner.exe "$runtimeRoot/bin/" || true
+                          cp "$buildRoot"/session_utils/*-*.exe "$runtimeRoot/bin/" || true
+                          cp "$buildRoot"/luasession/ardour*-lua.exe "$runtimeRoot/bin/" || true
+                          cp "$buildRoot"/libs/tk/ztk/ztk-*.dll "$runtimeRoot/bin/" || true
+                          cp "$buildRoot"/libs/tk/ydk/ydk-*.dll "$runtimeRoot/bin/" || true
+                          cp "$buildRoot"/libs/tk/ytk/ytk-*.dll "$runtimeRoot/bin/" || true
+                          cp "$buildRoot"/libs/tk/ytkmm/ytkmm-*.dll "$runtimeRoot/bin/" || true
+                          cp "$buildRoot"/libs/tk/ydkmm/ydkmm-*.dll "$runtimeRoot/bin/" || true
+                          cp "$buildRoot"/libs/tk/ztkmm/ztkmm-*.dll "$runtimeRoot/bin/" || true
+                          cp "$buildRoot"/libs/tk/ydk-pixbuf/ydk-pixbuf-*.dll "$runtimeRoot/bin/" || true
+                          cp "$buildRoot"/libs/tk/suil/suil-*.dll "$runtimeRoot/bin/" || true
+
+                          # Copy module/plugin DLLs to the expected bundle subdirectories.
+                          find "$buildRoot"/libs/surfaces -iname "*.dll" -exec cp {} "$bundleLibDir/surfaces/" \;
+                          find "$buildRoot"/libs/backends -iname "*.dll" -exec cp {} "$bundleLibDir/backends/" \;
+                          find "$buildRoot"/libs/panners -iname "*.dll" -exec cp {} "$bundleLibDir/panners/" \;
+                          cp -r "$buildRoot"/libs/LV2 "$bundleLibDir/" || true
+                          cp "$buildRoot"/libs/vamp-plugins/*ardourvampplugins*.dll "$bundleLibDir/vamp/libardourvampplugins.dll"
+                          cp "$buildRoot"/libs/vamp-pyin/*ardourvamppyin*.dll "$bundleLibDir/vamp/libardourvamppyin.dll" || true
+                          if [ -d "$buildRoot"/libs/tk/suil ]; then
+                            cp "$buildRoot"/libs/tk/suil/suil_win_in_gtk2.dll "$bundleLibDir/suil/" || true
+                          fi
+
+                          # Deploy share assets so runtime lookups can resolve fonts/scripts/templates/media.
+                          mkdir -p "$runtimeRoot/share/$bundleName"
+                          cp -r ${ardourSource}/share/* "$runtimeRoot/share/$bundleName/"
+                          cp -r ${ardourSource}/gtk2_ardour/resources "$runtimeRoot/share/$bundleName/" || true
+                          cp -r ${ardourSource}/gtk2_ardour/icons "$runtimeRoot/share/$bundleName/" || true
+                          cp ${ardourSource}/gtk2_ardour/ArdourMono.ttf "$runtimeRoot/share/$bundleName/" || true
+                          cp ${ardourSource}/gtk2_ardour/ArdourSans.ttf "$runtimeRoot/share/$bundleName/" || true
+                          cp "$buildRoot"/gtk2_ardour/ardour.keys "$runtimeRoot/share/$bundleName/" || true
+                          cp "$buildRoot"/gtk2_ardour/clearlooks.rc "$runtimeRoot/share/$bundleName/" || true
+                          cp "$buildRoot"/gtk2_ardour/default_ui_config "$runtimeRoot/share/$bundleName/" || true
+
+                          # Copy dependency DLLs from all configured MinGW runtime/library paths.
+                          for libdir in $(echo "${mingwLibraryPath}" | tr ':' ' '); do
+                            if [ -d "$libdir" ]; then
+                              cp -n "$libdir"/*.dll "$runtimeRoot/bin/" 2>/dev/null || true
+                            fi
+                            bindir="''${libdir%/lib}/bin"
+                            if [ -d "$bindir" ]; then
+                              cp -n "$bindir"/*.dll "$runtimeRoot/bin/" 2>/dev/null || true
+                            fi
+                          done
+
+                          # Runtime-only dependencies are added in this phase to avoid polluting compile inputs.
+                          for src in ${
+                            pkgs.lib.concatStringsSep " " (map (p: "\"${p}\"") runtimeOnlyWinDllDeps)
+                          }; do
+                            if [ -d "$src" ]; then
+                              find "$src" -type f -name "*.dll" -exec cp -n {} "$runtimeRoot/bin/" \;
+                            fi
+                          done
+
+                          # Ensure compiler runtime DLLs are bundled as well.
+                          for d in "${winPkgs.stdenv.cc.cc}/bin" "${winPkgs.stdenv.cc.cc.lib}/bin" "${winPkgs.stdenv.cc.cc.lib}/${winPkgs.stdenv.hostPlatform.config}/lib" "${patchedWinPthreads}/bin"; do
+                            if [ -d "$d" ]; then
+                              cp -n "$d"/*.dll "$runtimeRoot/bin/" 2>/dev/null || true
+                            fi
+                          done
+
+                          # Keep behavior aligned with x-win packaging script.
+                          rm -f "$runtimeRoot/bin"/libjack*.dll
+                          rm -f "$runtimeRoot/bin"/dbghelp*.dll "$runtimeRoot/bin"/dbgcore*.dll
+
+                          # Convenience launcher for Wine that sets ARDOUR_DLL_PATH for bundle runtime.
+                          mkdir -p "$out/bin"
+                          cat > "$out/bin/run-ardour-wine" << EOF
+              #!/usr/bin/env bash
+              set -euo pipefail
+              root="\$(cd "\$(dirname "\$0")/.." && pwd)"
+              dll_dir_unix="\$root/runtime/lib/$bundleName"
+              exe="\$(ls -1 "\$root"/runtime/bin/ardour-*.exe 2>/dev/null | head -n1)"
+
+              if [ -z "\$exe" ] || [ ! -f "\$exe" ]; then
+                echo "Executable not found under \$root/runtime/bin" >&2
+                exit 1
+              fi
+
+              if command -v winepath >/dev/null 2>&1; then
+                dll_dir_win="\$(winepath -w "\$dll_dir_unix")"
+                bin_dir_win="\$(winepath -w "\$root/runtime/bin")"
+                export ARDOUR_DLL_PATH="\$dll_dir_win"
+                export WINEPATH="\$bin_dir_win''${WINEPATH:+;\$WINEPATH}"
+              else
+                echo "winepath not found; ARDOUR_DLL_PATH/WINEPATH were not translated." >&2
+              fi
+
+              exec wine "\$exe" "\$@"
+              EOF
+                          chmod +x "$out/bin/run-ardour-wine"
+
+                          runHook postInstall
+            '';
+          };
         };
-      };
 
       devShells.${system}.default = pkgs.mkShell {
         nativeBuildInputs = [
