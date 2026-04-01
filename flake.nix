@@ -909,6 +909,27 @@
         fetchSubmodules = true;
         hash = "sha256-zbEfEuWdhlKtYE0gVB/N0dFrcmNoJqgEMuvQ0wdmRpM=";
       };
+
+      # External runtime assets that tools/x-win/package.sh downloads during packaging.
+      harvidWindowsArchive = pkgs.fetchurl {
+        url = "http://ardour.org/files/video-tools/harvid_w64-v0.9.1.tar.xz";
+        hash = "sha256-YsZWW31WZ1hjqGl1+Q0HZP5Snjy6afnLDnlyl8UnnE8=";
+      };
+
+      xjadeoWindowsArchive = pkgs.fetchurl {
+        url = "http://ardour.org/files/video-tools/xjadeo_w64-v0.8.15.tar.xz";
+        hash = "sha256-mcy9r5SsgIC7YfcvdL9+KCKFdCAPG8GBst6u9Q5FTyM=";
+      };
+
+      x42GmSynthWindowsArchive = pkgs.fetchurl {
+        url = "http://x42-plugins.com/x42/win/x42-gmsynth-lv2-w64-v0.6.4.zip";
+        hash = "sha256-DtJ8XvDX9fsxTlDLN/T8sTPdzD59oL/51G/oT598V8E=";
+      };
+
+      ardourBundledMediaArchive = pkgs.fetchurl {
+        url = "http://stuff.ardour.org/loops/ArdourBundledMedia.zip";
+        hash = "sha256-oA3gBnHNwymyyjXCpcQVCvPWWIFH+dyi496nUqouI0w=";
+      };
     in
     {
       packages.${system} =
@@ -1057,6 +1078,11 @@
             version = "9.2.0";
 
             dontUnpack = true;
+            nativeBuildInputs = [
+              pkgs.gnutar
+              pkgs.unzip
+              pkgs.xz
+            ];
             buildInputs = runtimeOnlyWinDllDeps;
 
             installPhase = ''
@@ -1164,6 +1190,18 @@
                           cp "$buildRoot"/gtk2_ardour/clearlooks.rc "$runtimeRoot/share/$bundleName/" || true
                           cp "$buildRoot"/gtk2_ardour/default_ui_config "$runtimeRoot/share/$bundleName/" || true
                           cp ${ardourSource}/system_config "$runtimeRoot/share/$bundleName/" || true
+
+                          # Mirror external downloads from tools/x-win/package.sh inside the runtime tree.
+                          mkdir -p "$runtimeRoot/video"
+                          tar -xf ${harvidWindowsArchive} -C "$runtimeRoot/video/"
+                          tar -xf ${xjadeoWindowsArchive} -C "$runtimeRoot/video/"
+
+                          mkdir -p "$bundleLibDir/LV2"
+                          ${pkgs.unzip}/bin/unzip -q -o -d "$bundleLibDir/LV2/" ${x42GmSynthWindowsArchive}
+
+                          mkdir -p "$runtimeRoot/share/$bundleName/media"
+                          rm -f "$runtimeRoot/share/$bundleName/media"/*.*
+                          ${pkgs.unzip}/bin/unzip -q -o -d "$runtimeRoot/share/$bundleName/media/" ${ardourBundledMediaArchive}
 
                           # Bring in prefix bin/lib payloads before generic dependency scanning.
                           if [ -n "$prefixRoot" ] && [ -d "$prefixRoot" ]; then
