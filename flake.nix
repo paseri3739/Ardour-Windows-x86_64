@@ -1092,7 +1092,8 @@
 
                           major="''${version%%.*}"
                           bundleName="ardour$major"
-                          runtimeRoot="$out/runtime"
+                          runtimeDirName="Ardour$major"
+                          runtimeRoot="$out/$runtimeDirName"
                           bundleLibDir="$runtimeRoot/lib/$bundleName"
                           buildRoot="${ardourWindowsBase}/build"
                           prefixStore="${ardourWindowsBase}/prefix"
@@ -1284,21 +1285,21 @@
               #!/usr/bin/env bash
               set -euo pipefail
               root="\$(cd "\$(dirname "\$0")/.." && pwd)"
-              dll_dir_unix="\$root/runtime/lib/$bundleName"
-              exe="\$root/runtime/bin/Ardour.exe"
+              dll_dir_unix="\$root/$runtimeDirName/lib/$bundleName"
+              exe="\$root/$runtimeDirName/bin/Ardour.exe"
               if [ ! -f "\$exe" ]; then
-                exe="\$(ls -1 "\$root"/runtime/bin/ardour-*.exe 2>/dev/null | head -n1)"
+                exe="\$(ls -1 "\$root"/$runtimeDirName/bin/ardour-*.exe 2>/dev/null | head -n1)"
               fi
 
               if [ -z "\$exe" ] || [ ! -f "\$exe" ]; then
-                echo "Executable not found under \$root/runtime/bin" >&2
+                echo "Executable not found under \$root/$runtimeDirName/bin" >&2
                 exit 1
               fi
 
               if command -v winepath >/dev/null 2>&1; then
                 dll_dir_win="\$(winepath -w "\$dll_dir_unix")"
-                bin_dir_win="\$(winepath -w "\$root/runtime/bin")"
-                data_dir_win="\$(winepath -w "\$root/runtime/share/$bundleName")"
+                bin_dir_win="\$(winepath -w "\$root/$runtimeDirName/bin")"
+                data_dir_win="\$(winepath -w "\$root/$runtimeDirName/share/$bundleName")"
                 export ARDOUR_DLL_PATH="\$dll_dir_win"
                 export ARDOUR_DATA_PATH="\$data_dir_win"
                 export WINEPATH="\$bin_dir_win''${WINEPATH:+;\$WINEPATH}"
